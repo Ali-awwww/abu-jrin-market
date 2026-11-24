@@ -37,14 +37,14 @@ jobs:
       - name: بناء نسخة الويب
         run: |
           bun run build
-          test -f .output/public/index.html || { echo "لا يوجد index.html في .output/public" >&2; ls -R .output | head -100; exit 1; }
+          test -f dist/index.html || { echo "لا يوجد index.html في dist" >&2; ls -R dist | head -100; exit 1; }
       - name: استعادة مفتاح التوقيع من الأسرار
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > "$GITHUB_WORKSPACE/release.keystore"
           keytool -list -keystore "$GITHUB_WORKSPACE/release.keystore" -storepass "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" -storetype PKCS12
       - name: إعداد مشروع Capacitor
         run: |
-          test -f capacitor.config.ts || node_modules/.bin/cap init "سوق أبو جرين" com.abujrin.market --web-dir=.output/public
+          test -f capacitor.config.ts || node_modules/.bin/cap init "سوق أبو جرين" com.abujrin.market --web-dir=dist
           node_modules/.bin/cap add android
           node_modules/.bin/cap sync android
       - name: بناء APK الموقّع بتوقيع Release
