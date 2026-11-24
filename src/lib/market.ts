@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-
+// Abu Jrin near Al-Safira, Aleppo (not Manbij).
 export const VILLAGE_CENTER: [number, number] = [36.0475, 37.4508];
 export const VILLAGE_BOUNDS: [[number, number], [number, number]] = [
   [36.0395, 37.4398],
@@ -32,7 +32,7 @@ export type Shop = {
   lng: number | null;
   open_time: string;
   close_time: string;
-  status: "pending" | "approved";
+  status: "pending" | "approved" | "rejected";
   is_demo?: boolean;
 };
 export type Product = {
