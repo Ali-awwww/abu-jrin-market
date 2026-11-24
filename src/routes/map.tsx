@@ -9,7 +9,7 @@ export const Route = createFileRoute("/map")({
   head: () => ({
     meta: [
       { title: "خريطة دكاكين أبو جرين — سوق القرية" },
-      { name: "description", content: "خريطة قرية أبو جرين مع مواقع كل الدكاكين والاتجاهات إليها." },
+      { name: "description", content: "خريطة قرية أبو جرين قرب السفيرة في محافظة حلب مع مواقع كل الدكاكين والاتجاهات إليها." },
       { property: "og:title", content: "خريطة دكاكين قرية أبو جرين" },
       { property: "og:description", content: "مواقع دكاكين القرية والاتجاهات إليها." },
       { property: "og:type", content: "website" },
@@ -24,6 +24,7 @@ function MapPage() {
   return (
     <main className="space-y-4 px-4 pt-4">
       <h1 className="text-2xl font-extrabold">🗺️ خريطة قرية أبو جرين</h1>
+      <p className="text-muted-foreground">قرية أبو جرين قرب السفيرة في محافظة حلب.</p>
       <MapBox shops={shops.data ?? []} height="55vh" />
       <ul className="space-y-2">
         {(shops.data ?? []).map((s) => (
