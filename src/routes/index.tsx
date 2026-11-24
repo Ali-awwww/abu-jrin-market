@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { LogIn } from "lucide-react";
 import { SearchBar } from "@/components/market/SearchBar";
 import { MapBox } from "@/components/market/MapBox";
+import { DemoBadge } from "@/components/market/DemoBadge";
 import { OpenBadge } from "@/components/market/OpenBadge";
 import { useBuyerLocation } from "@/components/market/useLocation";
 import { useAuth } from "@/lib/auth";
@@ -82,14 +83,15 @@ function Home() {
           {cheapestToday(offers.data ?? []).map((o) => (
             <Link
               key={o.id}
-              to="/search"
-              search={{ q: o.name, cat: undefined }}
+              to="/product/$productId"
+              params={{ productId: o.id }}
               className="w-40 shrink-0 rounded-2xl border-2 border-accent bg-card p-3 shadow-soft"
             >
               <p className="text-xl font-bold">{o.name}</p>
               <p className="text-lg font-extrabold text-primary">{formatSyp(o.price_syp)}</p>
               <p className="text-base text-muted-foreground">{formatUsd(o.price_usd)} / {o.unit}</p>
               <p className="mt-1 text-sm font-medium">🏪 {o.shop.name}</p>
+              <DemoBadge show={o.shop.is_demo} />
             </Link>
           ))}
           {offers.isLoading && <p className="text-muted-foreground">جارِ التحميل...</p>}
@@ -100,13 +102,15 @@ function Home() {
         <h2 className="mb-3 text-xl font-bold">🏪 الدكاكين القريبة منك</h2>
         <ul className="space-y-2">
           {sortedShops.map((s) => (
-            <li key={s.id} className="rounded-2xl border border-border bg-card p-4 shadow-soft">
+            <li key={s.id}>
+              <Link to="/shop/$shopId" params={{ shopId: s.id }} className="block rounded-2xl border border-border bg-card p-4 shadow-soft active:scale-[0.99]">
               <div className="flex items-center justify-between">
-                <p className="text-lg font-bold">{s.name}</p>
+                <p className="text-lg font-bold">{s.name} <DemoBadge show={s.is_demo} /></p>
                 <span className="text-base text-muted-foreground">{formatDistance(shopDistance(s, pos))}</span>
               </div>
               <p className="text-base text-muted-foreground">📍 {s.address}</p>
               <OpenBadge shop={s} />
+              </Link>
             </li>
           ))}
         </ul>

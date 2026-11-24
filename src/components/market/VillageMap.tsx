@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { VILLAGE_BOUNDS, VILLAGE_CENTER, type Shop, isShopOpen, directionsLink } from "@/lib/market";
@@ -25,6 +25,7 @@ export default function VillageMap({ shops = [], height = 260, picked, onPick }:
   const layer = useRef<L.LayerGroup | null>(null);
   const pickRef = useRef(onPick);
   pickRef.current = onPick;
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!el.current) return;
@@ -42,7 +43,7 @@ export default function VillageMap({ shops = [], height = 260, picked, onPick }:
       attribution: "© OpenStreetMap contributors",
       maxZoom: 19,
       bounds,
-    }).addTo(m);
+    }).on("load", () => setLoading(false)).addTo(m);
     m.on("click", (e) => pickRef.current?.([e.latlng.lat, e.latlng.lng]));
     layer.current = L.layerGroup().addTo(m);
     map.current = m;
@@ -68,5 +69,14 @@ export default function VillageMap({ shops = [], height = 260, picked, onPick }:
     if (picked) L.marker(picked, { icon: pickIcon }).addTo(g);
   }, [shops, picked]);
 
-  return <div ref={el} style={{ height }} className="w-full overflow-hidden rounded-2xl border border-border" />;
+  return (
+    <div className="relative w-full" style={{ height }}>
+      <div ref={el} style={{ height }} className="w-full overflow-hidden rounded-2xl border border-border" />
+      {loading && (
+        <div className="pointer-events-none absolute inset-0 z-[500] flex animate-pulse items-center justify-center rounded-2xl bg-muted text-lg font-bold text-muted-foreground">
+          جارِ تحميل الخريطة...
+        </div>
+      )}
+    </div>
+  );
 }

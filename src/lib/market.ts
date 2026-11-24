@@ -28,6 +28,7 @@ export type Shop = {
   open_time: string;
   close_time: string;
   status: "pending" | "approved";
+  is_demo?: boolean;
 };
 export type Product = {
   id: string;
@@ -152,4 +153,22 @@ export async function fetchShops() {
   const { data, error } = await supabase.from("shops").select("*").eq("status", "approved").order("name");
   if (error) throw error;
   return data as Shop[];
+}
+
+export async function fetchShop(id: string) {
+  const { data, error } = await supabase.from("shops").select("*").eq("id", id).maybeSingle();
+  if (error) throw error;
+  return data as Shop | null;
+}
+export async function fetchShopProducts(shopId: string) {
+  const { data, error } = await supabase.from("products").select("*").eq("shop_id", shopId).eq("visible", true).order("name");
+  if (error) throw error;
+  return withPhotoUrls(data as Product[]);
+}
+export async function fetchProduct(id: string) {
+  const { data, error } = await supabase.from("products").select("*, shop:shops!inner(*)").eq("id", id).maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+  const [o] = await withPhotoUrls([data as unknown as Offer]);
+  return o ?? null;
 }

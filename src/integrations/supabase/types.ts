@@ -103,6 +103,7 @@ export type Database = {
           close_time: string
           created_at: string
           id: string
+          is_demo: boolean
           lat: number | null
           lng: number | null
           name: string
@@ -117,6 +118,7 @@ export type Database = {
           close_time?: string
           created_at?: string
           id?: string
+          is_demo?: boolean
           lat?: number | null
           lng?: number | null
           name: string
@@ -131,6 +133,7 @@ export type Database = {
           close_time?: string
           created_at?: string
           id?: string
+          is_demo?: boolean
           lat?: number | null
           lng?: number | null
           name?: string

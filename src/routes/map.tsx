@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { MapBox } from "@/components/market/MapBox";
+import { DemoBadge } from "@/components/market/DemoBadge";
 import { OpenBadge } from "@/components/market/OpenBadge";
 import { directionsLink, fetchShops } from "@/lib/market";
 
@@ -27,7 +28,7 @@ function MapPage() {
       <ul className="space-y-2">
         {(shops.data ?? []).map((s) => (
           <li key={s.id} className="rounded-2xl border border-border bg-card p-4 shadow-soft">
-            <p className="text-lg font-bold">{s.name}</p>
+            <p className="text-lg font-bold">{s.name} <DemoBadge show={s.is_demo} /></p>
             <p className="text-base text-muted-foreground">📍 {s.address}</p>
             <OpenBadge shop={s} />
             <a href={directionsLink(s)} target="_blank" rel="noopener" className="mt-2 block text-lg font-bold text-primary">

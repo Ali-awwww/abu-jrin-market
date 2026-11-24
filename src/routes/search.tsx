@@ -6,6 +6,8 @@ import { OfferCard } from "@/components/market/OfferCard";
 import { useBuyerLocation } from "@/components/market/useLocation";
 import { CATEGORIES, cheapestId, fetchOffers, nearestId, shopDistance, sortOffers } from "@/lib/market";
 
+const POPULAR = ["بطاطا", "طماطم", "بصل", "خبز", "سكر", "زيت", "صابون"];
+
 type S = { q: string | undefined; cat: string | undefined };
 
 export const Route = createFileRoute("/search")({
@@ -43,7 +45,7 @@ function SearchPage() {
   return (
     <main className="space-y-4 px-4 pt-4">
       <SearchBar key={q ?? ""} initial={q ?? ""} />
-      <div className="flex gap-2 overflow-x-auto pb-1">
+      <div className="flex flex-wrap gap-2">
         {CATEGORIES.map((c) => (
           <Link
             key={c.name}
@@ -56,7 +58,19 @@ function SearchPage() {
         ))}
       </div>
 
-      {!active && <p className="py-10 text-center text-xl text-muted-foreground">اكتب اسم المنتج أو اختر قسماً</p>}
+      {!active && (
+        <section className="space-y-3 rounded-2xl border border-border bg-card p-4 shadow-soft">
+          <p className="text-xl font-bold">اكتب اسم المنتج أو اختر قسماً</p>
+          <p className="text-base text-muted-foreground">منتجات يبحث عنها الناس كثيراً:</p>
+          <div className="flex flex-wrap gap-2">
+            {POPULAR.map((p) => (
+              <Link key={p} to="/search" search={{ q: p, cat: undefined }} className="rounded-full bg-secondary px-4 py-2 text-lg font-bold">
+                {p}
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {active && (
         <>

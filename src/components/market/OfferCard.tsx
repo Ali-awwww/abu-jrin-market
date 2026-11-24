@@ -1,6 +1,8 @@
 import { Phone, MessageCircle, MapPin, Navigation } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Link } from "@tanstack/react-router";
 import { OpenBadge } from "./OpenBadge";
+import { DemoBadge } from "./DemoBadge";
 import {
   directionsLink, formatDistance, formatSyp, formatUsd, whatsappLink, type Offer,
 } from "@/lib/market";
@@ -25,7 +27,7 @@ export function OfferCard({
           <div className="flex size-24 shrink-0 items-center justify-center rounded-xl bg-secondary text-4xl">🧺</div>
         )}
         <div className="min-w-0 flex-1">
-          <h3 className="text-xl font-bold">{offer.name}</h3>
+          <h3 className="text-xl font-bold"><Link to="/product/$productId" params={{ productId: offer.id }} className="underline-offset-4 hover:underline">{offer.name}</Link></h3>
           <p className="text-2xl font-extrabold text-primary">{formatSyp(offer.price_syp)}</p>
           <p className="text-lg font-semibold text-muted-foreground">{formatUsd(offer.price_usd)} <span className="text-base">/ {offer.unit}</span></p>
           <p className={`text-base font-medium ${out ? "text-destructive" : ""}`}>
@@ -34,7 +36,7 @@ export function OfferCard({
         </div>
       </div>
       <div className="mt-3 space-y-1 border-t border-border pt-3">
-        <p className="text-lg font-bold">🏪 {s.name}</p>
+        <p className="text-lg font-bold"><Link to="/shop/$shopId" params={{ shopId: s.id }}>🏪 {s.name}</Link> <DemoBadge show={s.is_demo} /></p>
         <p className="flex items-center gap-1 text-base text-muted-foreground">
           <MapPin className="size-4" /> {s.address} {distance != null && `· ${formatDistance(distance)}`}
         </p>
