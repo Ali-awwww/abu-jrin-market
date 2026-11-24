@@ -1,0 +1,67 @@
+# نشر سوق قرية أبو جرين على GitHub Pages (مجاني، بدون دومين مدفوع).
+# يبني التطبيق كما هو، وينشر الملفات الثابتة الناتجة عن البناء.
+name: نشر الموقع على GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: جلب الكود
+        uses: actions/checkout@v4
+      - name: تثبيت Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: تثبيت الاعتماديات
+        run: bun install
+      - name: بناء نسخة الإنتاج
+        run: bunx vite build --base=/abu-jrin-market/
+      - name: تجهيز مجلد النشر
+        run: |
+          if [ -d .output/public ]; then
+            WEB_DIR=.output/public
+          elif [ -d dist ]; then
+            WEB_DIR=dist
+          else
+            echo "لا يوجد مجلد بناء (.output/public أو dist)" >&2
+            ls -la
+            exit 1
+          fi
+          echo "WEB_DIR=$WEB_DIR" >> "$GITHUB_ENV"
+          ls -la "$WEB_DIR" | head -60
+          test -f "$WEB_DIR/index.html" || { echo "لا يوجد index.html في $WEB_DIR" >&2; exit 1; }
+          cp "$WEB_DIR/index.html" "$WEB_DIR/404.html"
+          touch "$WEB_DIR/.nojekyll"
+      - name: تهيئة Pages
+        uses: actions/configure-pages@v5
+      - name: رفع ملفات الموقع
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ env.WEB_DIR }}
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: النشر على GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
