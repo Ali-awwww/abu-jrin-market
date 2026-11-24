@@ -50,9 +50,19 @@ function MyShop() {
       <main className="space-y-3 px-4 pt-10 text-center">
         <p className="text-5xl">⏳</p>
         <h1 className="text-2xl font-extrabold">{shop.data.name}</h1>
-        <p className="text-xl">دكانك بانتظار موافقة المشرف (علي). بعد الموافقة يظهر للناس وتقدر تضيف منتجاتك.</p>
+        <p className="text-xl">دكانك بانتظار موافقة المشرف. بعد الموافقة يظهر للناس وتقدر تضيف منتجاتك.</p>
       </main>
     );
+  if (shop.data.status === "rejected")
+    return (
+      <main className="space-y-3 px-4 pt-10 text-center">
+      <p className="text-5xl">❌</p><h1 className="text-2xl font-extrabold">{shop.data.name}</h1>
+        <p className="text-xl">تم رفض طلب تسجيل دكانك.</p>
+        <p className="text-muted-foreground">يمكنك تقديم طلب جديد بعد مراجعة بيانات دكانك.</p>
+        <Button size="xl" className="mt-2 w-full" onClick={async () => { const { error } = await supabase.from("shops").delete().eq("id", shop.data.id); if (error) return void toast.error("تعذر تقديم طلب جديد"); void shop.refetch(); }}>تقديم طلب جديد</Button>
+      </main>
+      );
+        
   return <Dashboard shop={shop.data} userId={user.id} />;
 }
 
