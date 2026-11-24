@@ -26,6 +26,8 @@ export default defineConfig({
   // index.html غير الموجود، ومدخل SSR من دون ضبط صريح يعود
   // إلى index.html أيضاً وهو غير مسموح في بناء SSR.
   // src/client.tsx و src/server.ts هما دخولا الإطار القياسيان.
+  // مدخل SSR سلسلة نصية لأن مكوّن خادم المعاينة في مرحلة
+  // الـ prerender يتوقع مدخل خادم من نوع سلسلة نصية.
   environments: {
     client: {
       build: {
@@ -37,7 +39,7 @@ export default defineConfig({
     ssr: {
       build: {
         rollupOptions: {
-          input: { index: "src/server.ts" },
+          input: "src/server.ts",
         },
       },
     },
