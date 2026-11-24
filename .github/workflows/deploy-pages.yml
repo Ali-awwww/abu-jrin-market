@@ -1,5 +1,5 @@
 # نشر سوق قرية أبو جرين على GitHub Pages (مجاني، بدون دومين مدفوع).
-# يبني التطبيق كما هو، وينشر الملفات الثابتة الناتجة عن البناء.
+# يبني التطبيق كما هو (وضع SPA، المجلد dist)، وينشر الملفات الثابتة الناتجة عن البناء.
 name: نشر الموقع على GitHub Pages
 
 on:
@@ -32,12 +32,12 @@ jobs:
         run: bunx vite build --base=/abu-jrin-market/
       - name: تجهيز مجلد النشر
         run: |
-          if [ -d .output/public ]; then
-            WEB_DIR=.output/public
-          elif [ -d dist ]; then
+          if [ -d dist ]; then
             WEB_DIR=dist
+          elif [ -d .output/public ]; then
+            WEB_DIR=.output/public
           else
-            echo "لا يوجد مجلد بناء (.output/public أو dist)" >&2
+            echo "لا يوجد مجلد بناء (dist أو .output/public)" >&2
             ls -la
             exit 1
           fi
