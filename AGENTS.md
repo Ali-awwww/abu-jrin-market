@@ -28,3 +28,9 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## Project rules
+- Buyer auth uses phone numbers mapped to synthetic emails (`phoneToEmail` in src/lib/market.ts) with auto-confirm, because SMS sign-in is not configured.
+- Admins are granted by phone via the `admin_phones` table (trigger assigns the role), so admin access never depends on client data.
+- Product photos live in the private `product-photos` bucket and are shown through signed URLs (`withPhotoUrls`), because public buckets are blocked for this workspace.
+- Map is Leaflet + OpenStreetMap, locked to the village bounds in src/lib/market.ts.

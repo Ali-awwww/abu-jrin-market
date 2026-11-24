@@ -1,0 +1,4 @@
+create policy "product photos readable" on storage.objects for select to anon, authenticated using (bucket_id = 'product-photos');
+create policy "owners upload photos" on storage.objects for insert to authenticated with check (bucket_id = 'product-photos' and (storage.foldername(name))[1] = auth.uid()::text);
+create policy "owners update photos" on storage.objects for update to authenticated using (bucket_id = 'product-photos' and (storage.foldername(name))[1] = auth.uid()::text);
+create policy "owners delete photos" on storage.objects for delete to authenticated using (bucket_id = 'product-photos' and (storage.foldername(name))[1] = auth.uid()::text);
