@@ -32,6 +32,64 @@ export function categoryDescription(name: string | undefined | null) {
   return categoryByName(name)?.description ?? "";
 }
 
+// تذكير تجديد صورة المنتج: اختياري تماماً، يظهر للبائع فقط.
+// لا يوجد في قاعدة البيانات عمود منفصل لوقت الصورة، لذلك يُستخدم آخر تحديث للمنتج (updated_at)
+// مقياساً لعمر الصورة، لأنه يُحدَّث عند كل حفظ للمنتج بما فيه تغيير الصورة.
+export const PHOTO_REMINDER_HOURS = 5;
+export const PHOTO_REMINDER_SNOOZE_HOURS = 5;
+
+const PHOTO_REMINDER_SNOOZE_KEY = "abu-jrin-photo-reminder-snooze";
+
+/** عمر آخر تحديث للمنتج بالساعات، أو null إن لم يكن معروفاً. */
+export function photoAgeHours(updatedAt: string | undefined | null, now: number = Date.now()): number | null {
+  if (!updatedAt) return null;
+  const t = new Date(updatedAt).getTime();
+  if (Number.isNaN(t)) return null;
+  return (now - t) / 36e5;
+}
+
+/** هل مرّت 5 ساعات على آخر تحديث للمنتج؟ */
+export function isPhotoReminderDue(updatedAt: string | undefined | null, now: number = Date.now()): boolean {
+  const age = photoAgeHours(updatedAt, now);
+  return age != null && age >= PHOTO_REMINDER_HOURS;
+}
+
+function readPhotoReminderSnoozes(): Record<string, number> {
+  try {
+    if (typeof localStorage === "undefined") return {};
+    return (JSON.parse(localStorage.getItem(PHOTO_REMINDER_SNOOZE_KEY) ?? "{}") ?? {}) as Record<string, number>;
+  } catch {
+    return {};
+  }
+}
+
+/** هل أجّل البائع التذكير لهذا المنتج وما زال التأجيل سارياً؟ */
+export function isPhotoReminderSnoozed(productId: string, now: number = Date.now()): boolean {
+  const until = readPhotoReminderSnoozes()[productId];
+  return typeof until === "number" && until > now;
+}
+
+/** أجّل التذكير لهذا المنتج 5 ساعات أخرى. لا يمنع البيع ولا يحذف المنتج. */
+export function snoozePhotoReminder(productId: string, now: number = Date.now()): void {
+  try {
+    if (typeof localStorage === "undefined") return;
+    const all = readPhotoReminderSnoozes();
+    all[productId] = now + PHOTO_REMINDER_SNOOZE_HOURS * 36e5;
+    localStorage.setItem(PHOTO_REMINDER_SNOOZE_KEY, JSON.stringify(all));
+  } catch {
+    // إن تعذّر التخزين المحلي يبقى التذكير ظاهراً دون أي عقوبة.
+  }
+}
+
+/** هل يجب إظهار تذكير تجديد الصورة لهذا المنتج الآن؟ (للبائع فقط، وللمنتجات التي لها صورة). */
+export function shouldShowPhotoReminder(
+  product: { id: string; updated_at?: string | null; photo_url?: string | null },
+  now: number = Date.now(),
+): boolean {
+  if (!product.photo_url) return false;
+  return isPhotoReminderDue(product.updated_at, now) && !isPhotoReminderSnoozed(product.id, now);
+}
+
 export const UNITS = ["كغ", "قطعة", "ربطة", "لتر", "علبة", "كيس"];
 
 export type Shop = {
@@ -60,6 +118,8 @@ export type Product = {
   stock: number;
   photo_url: string | null;
   visible: boolean;
+  // يأتي من Supabase (select *) ويُحدَّث عند كل حفظ للمنتج، ويُستخدم لعمر الصورة في تذكير التجديد.
+  updated_at?: string;
 };
 export type Offer = Product & { shop: Shop };
 
