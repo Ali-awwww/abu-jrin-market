@@ -28,27 +28,23 @@ jobs:
         run: bunx vite build --base=/abu-jrin-market/
       - name: تجهيز مجلد النشر
         run: |
-          echo "--- كل ملفات HTML في مساحة العمل (خارج node_modules) ---"
-          find . -name "*.html" -not -path "./node_modules/*" -not -path "./.git/*" | sort
           echo "--- كل ملفات dist بعد البناء ---"
           find dist -type f | sort | head -100
           if [ -f dist/client/index.html ]; then
             WEB_DIR=dist/client
+          elif [ -f dist/client/_shell.html ]; then
+            # وضع SPA في TanStack Start يولّد قالب التطبيق باسم _shell.html؛ ننسخه باسم index.html ليخدمه Pages
+            echo "نُسخ dist/client/_shell.html إلى dist/client/index.html"
+            cp dist/client/_shell.html dist/client/index.html
+            WEB_DIR=dist/client
+          elif [ -f dist/index.html ]; then
+            WEB_DIR=dist
+          elif [ -d .output/public ]; then
+            WEB_DIR=.output/public
           else
-            HTML_FILE=$(find . -name "index.html" -type f -not -path "./node_modules/*" -not -path "./.git/*" -not -path "./dist/*" | head -n 1)
-            if [ -n "$HTML_FILE" ] && grep -q "assets/index-" "$HTML_FILE"; then
-              echo "نُسخ $HTML_FILE إلى dist/client/index.html"
-              cp "$HTML_FILE" dist/client/index.html
-              WEB_DIR=dist/client
-            elif [ -f dist/index.html ]; then
-              WEB_DIR=dist
-            elif [ -d .output/public ]; then
-              WEB_DIR=.output/public
-            else
-              echo "لا يوجد index.html بعد البناء" >&2
-              ls -la
-              exit 1
-            fi
+            echo "لا يوجد index.html بعد البناء" >&2
+            ls -la
+            exit 1
           fi
           echo "WEB_DIR=$WEB_DIR" >> "$GITHUB_ENV"
           ls -la "$WEB_DIR" | head -60
