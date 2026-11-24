@@ -5,9 +5,10 @@ import { toast } from "sonner";
 import { Camera, Eye, EyeOff, ImagePlus, Pencil, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MapBox } from "@/components/market/MapBox";
+import { PhotoReminder } from "@/components/market/PhotoReminder";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { CATEGORIES, UNITS, formatSyp, formatUsd, withPhotoUrls, type Product, type Shop } from "@/lib/market";
+import { CATEGORIES, categoryByName, categoryDescription, UNITS, formatSyp, formatUsd, withPhotoUrls, type Product, type Shop } from "@/lib/market";
 import { fieldCls } from "@/lib/ui";
 
 export const Route = createFileRoute("/my-shop")({
@@ -62,7 +63,6 @@ function MyShop() {
         <Button size="xl" className="mt-2 w-full" onClick={async () => { const { error } = await supabase.from("shops").delete().eq("id", shop.data.id); if (error) return void toast.error("تعذر تقديم طلب جديد"); void shop.refetch(); }}>تقديم طلب جديد</Button>
       </main>
       );
-        
   return <Dashboard shop={shop.data} userId={user.id} />;
 }
 
@@ -106,8 +106,8 @@ function RegisterShop({ userId }: { userId: string }) {
   );
 }
 
-type Draft = { id?: string; name: string; category: string; unit: string; price_syp: string; price_usd: string; stock: string; photo_url: string | null };
-const empty: Draft = { name: "", category: "خضار", unit: "كغ", price_syp: "", price_usd: "", stock: "", photo_url: null };
+type Draft = { id?: string; name: string; category: string; description: string; unit: string; price_syp: string; price_usd: string; stock: string; photo_url: string | null };
+const empty: Draft = { name: "", category: "خضار", description: "", unit: "كغ", price_syp: "", price_usd: "", stock: "", photo_url: null };
 
 function Dashboard({ shop, userId }: { shop: Shop; userId: string }) {
   const qc = useQueryClient();
@@ -128,6 +128,9 @@ function Dashboard({ shop, userId }: { shop: Shop; userId: string }) {
     await supabase.from("products").update({ visible: !p.visible }).eq("id", p.id);
     refresh();
   }
+  function startEdit(p: Product) {
+    setDraft({ id: p.id, name: p.name, category: p.category, description: p.description ?? "", unit: p.unit, price_syp: String(p.price_syp), price_usd: String(p.price_usd), stock: String(p.stock), photo_url: p.photo_url });
+  }
 
   return (
     <main className="space-y-4 px-4 pt-6">
@@ -138,20 +141,23 @@ function Dashboard({ shop, userId }: { shop: Shop; userId: string }) {
       {draft && <ProductForm draft={draft} shopId={shop.id} userId={userId} onDone={() => { setDraft(null); refresh(); }} />}
       <ul className="space-y-2">
         {products.data?.map((p) => (
-          <li key={p.id} className={`flex items-center gap-3 rounded-2xl border border-border bg-card p-3 shadow-soft ${p.visible ? "" : "opacity-60"}`}>
-            {p.photoSrc ? <img src={p.photoSrc} alt="" className="size-16 rounded-xl object-cover" /> : <div className="flex size-16 items-center justify-center rounded-xl bg-secondary text-2xl">🧺</div>}
-            <div className="min-w-0 flex-1">
-              <p className="text-lg font-bold">{p.name} {!p.visible && <span className="text-sm">(مخفي)</span>}</p>
-              <p className="text-base">{formatSyp(p.price_syp)} · {formatUsd(p.price_usd)} / {p.unit}</p>
-              <p className="text-sm text-muted-foreground">الكمية: {p.stock}</p>
+          <li key={p.id} className={`space-y-2 rounded-2xl border border-border bg-card p-3 shadow-soft ${p.visible ? "" : "opacity-60"}`}>
+            <div className="flex items-center gap-3">
+              {p.photoSrc ? <img src={p.photoSrc} alt="" className="size-16 rounded-xl object-cover" /> : <div className="flex size-16 items-center justify-center rounded-xl bg-secondary text-2xl">🧺</div>}
+              <div className="min-w-0 flex-1">
+                <p className="text-lg font-bold">{p.name} {!p.visible && <span className="text-sm">(مخفي)</span>}</p>
+                {p.description ? <p className="text-sm text-muted-foreground">{p.description}</p> : null}
+                <p className="text-base">{formatSyp(p.price_syp)} · {formatUsd(p.price_usd)} / {p.unit}</p>
+                <p className="text-sm text-muted-foreground">الكمية: {p.stock}</p>
+              </div>
+              <Button variant="outline" size="icon" className="size-12" aria-label="تعديل" onClick={() => startEdit(p)}>
+                <Pencil />
+              </Button>
+              <Button variant="outline" size="icon" className="size-12" aria-label={p.visible ? "إخفاء" : "إظهار"} onClick={() => toggle(p)}>
+                {p.visible ? <Eye /> : <EyeOff />}
+              </Button>
             </div>
-            <Button variant="outline" size="icon" className="size-12" aria-label="تعديل"
-              onClick={() => setDraft({ id: p.id, name: p.name, category: p.category, unit: p.unit, price_syp: String(p.price_syp), price_usd: String(p.price_usd), stock: String(p.stock), photo_url: p.photo_url })}>
-              <Pencil />
-            </Button>
-            <Button variant="outline" size="icon" className="size-12" aria-label={p.visible ? "إخفاء" : "إظهار"} onClick={() => toggle(p)}>
-              {p.visible ? <Eye /> : <EyeOff />}
-            </Button>
+            <PhotoReminder productId={p.id} updatedAt={p.updated_at} hasPhoto={!!p.photo_url} onUpdateNow={() => startEdit(p)} />
           </li>
         ))}
       </ul>
@@ -163,7 +169,8 @@ function ProductForm({ draft, shopId, userId, onDone }: { draft: Draft; shopId: 
   const [d, setD] = useState(draft);
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
-  const set = (k: keyof Draft) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setD({ ...d, [k]: e.target.value });
+  const catDesc = categoryDescription(d.category);
+  const set = (k: keyof Draft) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => setD({ ...d, [k]: e.target.value });
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -176,16 +183,25 @@ function ProductForm({ draft, shopId, userId, onDone }: { draft: Draft; shopId: 
       photo_url = path;
     }
     const row = {
-      name: d.name.trim(), category: d.category, unit: d.unit,
+      name: d.name.trim(), category: d.category, description: d.description.trim() || null, unit: d.unit,
       price_syp: Number(d.price_syp) || 0, price_usd: Number(d.price_usd) || 0, stock: Number(d.stock) || 0,
       photo_url, updated_at: new Date().toISOString(),
     };
-    const res = d.id
-      ? await supabase.from("products").update(row).eq("id", d.id)
-      : await supabase.from("products").insert({ ...row, shop_id: shopId });
+    const saveRow = (withDescription: boolean) => {
+      const payload = withDescription ? row : { ...row, description: undefined as string | null | undefined };
+      return d.id
+        ? supabase.from("products").update(payload).eq("id", d.id)
+        : supabase.from("products").insert({ ...payload, shop_id: shopId });
+    };
+    let res = await saveRow(true);
+    let savedWithoutDescription = false;
+    if (res.error && res.error.message.includes("description")) {
+      res = await saveRow(false);
+      savedWithoutDescription = true;
+    }
     setBusy(false);
     if (res.error) return void toast.error("تعذر الحفظ");
-    toast.success("تم الحفظ");
+    toast.success(savedWithoutDescription ? "تم الحفظ، لكن وصف المنتج يحتاج إضافة عمود description في قاعدة البيانات" : "تم الحفظ");
     onDone();
   }
 
@@ -197,6 +213,12 @@ function ProductForm({ draft, shopId, userId, onDone }: { draft: Draft; shopId: 
         <select className={fieldCls} value={d.category} onChange={set("category")}>{CATEGORIES.map((c) => <option key={c.name}>{c.name}</option>)}</select>
         <select className={fieldCls} value={d.unit} onChange={set("unit")}>{UNITS.map((u) => <option key={u}>{u}</option>)}</select>
       </div>
+      {catDesc ? <p className="text-base text-muted-foreground">{catDesc}</p> : null}
+      {d.category === "أخرى" && (
+        <label className="block text-lg font-bold">وصف المنتج (يكتبه البائع)
+          <textarea className={fieldCls} rows={3} placeholder="اكتب وصفاً قصيراً للمنتج، مثل نوعه وحجمه واستخدامه" value={d.description} onChange={set("description")} required />
+        </label>
+      )}
       <div className="grid grid-cols-2 gap-2">
         <label className="text-lg font-bold">السعر بالليرة<input className={fieldCls} inputMode="decimal" value={d.price_syp} onChange={set("price_syp")} required /></label>
         <label className="text-lg font-bold">السعر بالدولار<input className={fieldCls} inputMode="decimal" value={d.price_usd} onChange={set("price_usd")} required /></label>

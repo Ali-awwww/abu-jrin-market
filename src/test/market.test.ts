@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { cheapestId, isOpenAt, whatsappLink, type Offer } from "@/lib/market";
+import { CATEGORIES, categoryByName, categoryDescription, cheapestId, isOpenAt, isPhotoReminderDue, isPhotoReminderSnoozed, shouldShowPhotoReminder, snoozePhotoReminder, whatsappLink, type Offer } from "@/lib/market";
 
 const shop = { id: "s", owner_id: null, name: "x", owner_name: "x", phone: "963944000001", address: "", lat: null, lng: null, open_time: "08:00", close_time: "20:00", status: "approved" as const };
+
 const offer = (id: string, price: number, stock = 5): Offer => ({ id, shop_id: "s", name: "بطاطا", category: "خضار", unit: "كغ", price_syp: price, price_usd: 0, stock, photo_url: null, visible: true, shop });
 
 describe("market rules", () => {
@@ -15,5 +16,41 @@ describe("market rules", () => {
   it("whatsapp message asks to reserve 2 kg for pickup", () => {
     expect(decodeURIComponent(whatsappLink("0944000001", "بطاطا", "كغ"))).toContain("أريد 2 كغ بطاطا");
     expect(whatsappLink("0944000001", "بطاطا", "كغ")).toMatch(/^https:\/\/wa\.me\/963944000001/);
+  });
+  it("new categories exist with descriptions", () => {
+    const byName = new Map(CATEGORIES.map((c) => [c.name, c]));
+    expect(byName.get("أدوات بناء")?.description).toBe("أدوات ومواد البناء، مثل الإسمنت والحديد والأدوات اليدوية");
+    expect(byName.get("أدوات بناء")?.icon).toBe("🧱");
+    expect(byName.get("أدوات منزلية")?.description).toBe("أدوات المطبخ والبيت والأواني والأدوات المنزلية");
+    expect(byName.get("أخرى")?.description).toContain("لا ينتمي إلى التصنيفات السابقة");
+    expect(byName.get("أخرى")).toBe(CATEGORIES[CATEGORIES.length - 1]);
+    for (const c of CATEGORIES) expect(c.description.length).toBeGreaterThan(0);
+    expect(categoryByName("أدوات بناء")?.icon).toBe("🧱");
+    expect(categoryDescription("أدوات منزلية")).toContain("المطبخ");
+    expect(categoryDescription("أخرى")).toContain("يكتب البائع وصف المنتج");
+    expect(categoryByName("غير موجود")).toBeUndefined();
+    expect(categoryDescription("غير موجود")).toBe("");
+  });
+  it("photo reminder is due only after 5 hours", () => {
+    const now = Date.now();
+    const fiveHoursAgo = new Date(now - 5 * 3600_000).toISOString();
+    const fourHoursAgo = new Date(now - 4 * 3600_000).toISOString();
+    expect(isPhotoReminderDue(fiveHoursAgo, now)).toBe(true);
+    expect(isPhotoReminderDue(fourHoursAgo, now)).toBe(false);
+    expect(isPhotoReminderDue(undefined, now)).toBe(false);
+    expect(isPhotoReminderDue(null, now)).toBe(false);
+    expect(isPhotoReminderDue("not-a-date", now)).toBe(false);
+  });
+  it("photo reminder needs a photo and respects snooze", () => {
+    const old = new Date(Date.now() - 6 * 3600_000).toISOString();
+    const recent = new Date(Date.now() - 1 * 3600_000).toISOString();
+    expect(shouldShowPhotoReminder({ id: "p-old-photo", updated_at: old, photo_url: "x.jpg" })).toBe(true);
+    expect(shouldShowPhotoReminder({ id: "p-old-nophoto", updated_at: old, photo_url: null })).toBe(false);
+    expect(shouldShowPhotoReminder({ id: "p-recent-photo", updated_at: recent, photo_url: "x.jpg" })).toBe(false);
+    expect(shouldShowPhotoReminder({ id: "p-old-nodate", updated_at: undefined, photo_url: "x.jpg" })).toBe(false);
+  });
+  it("photo reminder snooze lasts 5 hours without throwing", () => {
+    expect(() => snoozePhotoReminder("p-snooze-test")).not.toThrow();
+    expect(isPhotoReminderSnoozed("p-snooze-test", Date.now() + 6 * 3600_000)).toBe(false);
   });
 });

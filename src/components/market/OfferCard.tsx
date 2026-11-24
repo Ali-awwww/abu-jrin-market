@@ -28,6 +28,7 @@ export function OfferCard({
         )}
         <div className="min-w-0 flex-1">
           <h3 className="text-xl font-bold"><Link to="/product/$productId" params={{ productId: offer.id }} className="underline-offset-4 hover:underline">{offer.name}</Link></h3>
+          {offer.description ? <p className="text-base text-muted-foreground">{offer.description}</p> : null}
           <p className="text-2xl font-extrabold text-primary">{formatSyp(offer.price_syp)}</p>
           <p className="text-lg font-semibold text-muted-foreground">{formatUsd(offer.price_usd)} <span className="text-base">/ {offer.unit}</span></p>
           <p className={`text-base font-medium ${out ? "text-destructive" : ""}`}>

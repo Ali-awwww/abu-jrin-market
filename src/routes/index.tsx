@@ -11,6 +11,7 @@ import {
   CATEGORIES, fetchOffers, fetchShops, formatDistance, formatSyp, formatUsd, isShopOpen, shopDistance, type Offer,
 } from "@/lib/market";
 
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -25,6 +26,7 @@ export const Route = createFileRoute("/")({
   component: Home,
 });
 
+
 function cheapestToday(offers: Offer[]) {
   const best = new Map<string, Offer>();
   for (const o of offers) {
@@ -35,6 +37,7 @@ function cheapestToday(offers: Offer[]) {
   return [...best.values()];
 }
 
+
 function Home() {
   const { user } = useAuth();
   const pos = useBuyerLocation();
@@ -43,6 +46,7 @@ function Home() {
   const sortedShops = [...(shops.data ?? [])].sort(
     (a, b) => (shopDistance(a, pos) ?? 999) - (shopDistance(b, pos) ?? 999),
   );
+
 
   return (
     <main className="space-y-6 px-4 pt-4">
@@ -59,24 +63,29 @@ function Home() {
         )}
       </header>
 
+
       <SearchBar />
+
 
       <section>
         <h2 className="mb-3 text-xl font-bold">الأقسام</h2>
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 gap-2">
           {CATEGORIES.map((c) => (
             <Link
               key={c.name}
               to="/search"
               search={{ q: undefined, cat: c.name }}
-              className="flex flex-col items-center gap-1 rounded-2xl border border-border bg-card px-1 py-3 text-center text-base font-bold leading-tight shadow-soft active:scale-95"
+              title={c.description}
+              className="flex flex-col items-center gap-1 rounded-2xl border border-border bg-card px-2 py-3 text-center text-base font-bold leading-tight shadow-soft active:scale-95"
             >
               <span className="text-3xl">{c.icon}</span>
-              {c.name}
+              <span>{c.name}</span>
+              <span className="text-sm font-normal text-muted-foreground">{c.description}</span>
             </Link>
           ))}
         </div>
       </section>
+
 
       <section>
         <h2 className="mb-3 text-xl font-bold">💰 الأرخص اليوم</h2>
@@ -98,6 +107,7 @@ function Home() {
           {offers.isLoading && <p className="text-muted-foreground">جارِ التحميل...</p>}
         </div>
       </section>
+
 
       <section>
         <h2 className="mb-3 text-xl font-bold">🏪 الدكاكين القريبة منك</h2>
@@ -121,6 +131,7 @@ function Home() {
           </p>
         )}
       </section>
+
 
       <section>
         <div className="mb-3 flex items-center justify-between">

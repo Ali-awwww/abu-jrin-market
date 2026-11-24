@@ -29,6 +29,7 @@ export type Database = {
       products: {
         Row: {
           category: string
+          description: string | null
           id: string
           name: string
           photo_url: string | null
@@ -42,6 +43,7 @@ export type Database = {
         }
         Insert: {
           category?: string
+          description?: string | null
           id?: string
           name: string
           photo_url?: string | null
@@ -55,6 +57,7 @@ export type Database = {
         }
         Update: {
           category?: string
+          description?: string | null
           id?: string
           name?: string
           photo_url?: string | null
@@ -210,7 +213,7 @@ export type Tables<
     ? R
     : never
   : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])
+      DefaultSchema["Views"])
     ? (DefaultSchema["Tables"] &
         DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
         Row: infer R

@@ -4,9 +4,9 @@ import { useState } from "react";
 import { SearchBar } from "@/components/market/SearchBar";
 import { OfferCard } from "@/components/market/OfferCard";
 import { useBuyerLocation } from "@/components/market/useLocation";
-import { CATEGORIES, cheapestId, fetchOffers, nearestId, shopDistance, sortOffers } from "@/lib/market";
+import { CATEGORIES, categoryByName, cheapestId, fetchOffers, nearestId, shopDistance, sortOffers } from "@/lib/market";
 
-const POPULAR = ["بطاطا", "طماطم", "بصل", "خبز", "سكر", "زيت", "صابون", "لبن", "بيض", "عسل", "زيت زيتون", "علف دجاج", "لحم غنم"];
+const POPULAR = ["بطاطا", "طماطم", "بصل", "خبز", "سكر", "زيت", "صابون", "لبن", "بيض", "عسل", "زيت زيتون", "علف دجاج", "لحم غنم", "إسمنت"];
 
 type S = { q: string | undefined; cat: string | undefined };
 
@@ -41,6 +41,7 @@ function SearchPage() {
   const list = sortOffers(offers.data ?? [], sort, pos);
   const cheap = cheapestId(list);
   const near = nearestId(list, pos);
+  const selectedCategory = categoryByName(cat);
 
   return (
     <main className="space-y-4 px-4 pt-4">
@@ -51,6 +52,7 @@ function SearchPage() {
             key={c.name}
             to="/search"
             search={{ q: undefined, cat: c.name }}
+            title={c.description}
             className={`shrink-0 rounded-full border px-4 py-2 text-lg font-bold ${cat === c.name ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card"}`}
           >
             {c.icon} {c.name}
@@ -74,6 +76,11 @@ function SearchPage() {
 
       {active && (
         <>
+          {selectedCategory && (
+            <p className="rounded-2xl border border-border bg-card p-3 text-lg">
+              {selectedCategory.icon} {selectedCategory.name}: {selectedCategory.description}
+            </p>
+          )}
           <div className="flex items-center justify-between">
             <p className="text-lg font-bold">
               {offers.isLoading ? "جارِ البحث..." : `${list.length} نتيجة ${q ? `لـ «${q}»` : `في ${cat}`}`}
