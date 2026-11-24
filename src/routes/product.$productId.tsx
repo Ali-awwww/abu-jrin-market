@@ -1,7 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { OfferCard } from "@/components/market/OfferCard";
+import { PhotoReminder } from "@/components/market/PhotoReminder";
 import { useBuyerLocation } from "@/components/market/useLocation";
+import { useAuth } from "@/lib/auth";
 import { categoryDescription, fetchProduct, shopDistance } from "@/lib/market";
 
 export const Route = createFileRoute("/product/$productId")({
@@ -22,15 +24,21 @@ function ProductPage() {
   const { productId } = Route.useParams();
   const pos = useBuyerLocation();
   const q = useQuery({ queryKey: ["product", productId], queryFn: () => fetchProduct(productId) });
+  const { user } = useAuth();
+  const navigate = useNavigate();
   if (q.isLoading) return <p className="p-6 text-center text-xl text-muted-foreground">جارِ التحميل...</p>;
   const o = q.data;
   if (!o) return <p className="p-6 text-center text-xl text-muted-foreground">المنتج غير موجود</p>;
+  const isOwner = !!user && o.shop.owner_id === user.id;
   return (
     <main className="space-y-4 px-4 pt-4">
       {o.photoSrc && <img src={o.photoSrc} alt={o.name} className="h-56 w-full rounded-2xl object-cover" />}
       <p className="text-base text-muted-foreground">القسم: {o.category}</p>
       {categoryDescription(o.category) ? <p className="text-base text-muted-foreground">{categoryDescription(o.category)}</p> : null}
       {o.description ? <p className="text-lg">{o.description}</p> : null}
+      {isOwner && (
+        <PhotoReminder productId={o.id} updatedAt={o.updated_at} hasPhoto={!!o.photo_url} onUpdateNow={() => navigate({ to: "/my-shop" })} />
+      )}
       <OfferCard offer={o} distance={shopDistance(o.shop, pos)} />
       <Link to="/search" search={{ q: o.name, cat: undefined }} className="block rounded-2xl border-2 border-primary bg-card py-3 text-center text-lg font-bold text-primary">
         قارن سعر {o.name} في كل الدكاكين
