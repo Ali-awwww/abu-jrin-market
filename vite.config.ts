@@ -7,7 +7,7 @@ import { defineConfig } from "vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
-import tsConfigPaths from "vite-tsconfig-paths";
+import { tsConfigPaths } from "vite-tsconfig-paths";
 
 export default defineConfig({
   plugins: [
@@ -20,4 +20,17 @@ export default defineConfig({
     tailwindcss(),
     tsConfigPaths(),
   ],
+  // مدخل بيئة العميل صراحةً لـ Rollup: إصدار @tanstack/start-plugin-core
+  // المثبّت (1.172.0) يضبط مدخل العميل في rolldownOptions فقط، فيتجاهله
+  // Vite العادي ويعود إلى index.html غير الموجود. ملف src/client.tsx
+  // هو دخول العميل القياسي نفسه الذي يستخدمه الإطار افتراضياً.
+  environments: {
+    client: {
+      build: {
+        rollupOptions: {
+          input: { index: "src/client.tsx" },
+        },
+      },
+    },
+  },
 });
