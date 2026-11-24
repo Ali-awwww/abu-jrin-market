@@ -34,20 +34,24 @@ jobs:
         uses: android-actions/setup-android@v3
       - name: تثبيت الاعتماديات
         run: bun install
-      - name: بناء نسخة الويب
+      - name: بناء نسخة الويب (SPA)
         run: |
           bun run build
-          test -f dist/index.html || { echo "لا يوجد index.html في dist" >&2; ls -R dist | head -100; exit 1; }
+          # وضع SPA في TanStack Start يولّد قالب التطبيق باسم _shell.html داخل dist/client
+          if [ -f dist/client/_shell.html ]; then
+            cp dist/client/_shell.html dist/client/index.html
+          fi
+          test -f dist/client/index.html || { echo "لا يوجد index.html في dist/client" >&2; ls -R dist | head -100; exit 1; }
       - name: استعادة مفتاح التوقيع من الأسرار
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > "$GITHUB_WORKSPACE/release.keystore"
           keytool -list -keystore "$GITHUB_WORKSPACE/release.keystore" -storepass "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" -storetype PKCS12
       - name: إعداد مشروع Capacitor
         run: |
-          test -f capacitor.config.ts || node_modules/.bin/cap init "سوق أبو جرين" com.abujrin.market --web-dir=dist
+          test -f capacitor.config.ts || node_modules/.bin/cap init "سوق أبو جرين" com.abujrin.market --web-dir=dist/client
           node_modules/.bin/cap add android
           node_modules/.bin/cap sync android
-      - name: بناء APK الموقّع بتوقيع Release
+      - name: بناء APK بتوقيع Release
         run: |
           cd android
           ./gradlew assembleRelease -Pandroid.injected.signing.store.file="$GITHUB_WORKSPACE/release.keystore" -Pandroid.injected.signing.store.password="${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" -Pandroid.injected.signing.key.alias="${{ secrets.ANDROID_KEY_ALIAS }}" -Pandroid.injected.signing.key.password="${{ secrets.ANDROID_KEY_PASSWORD }}"
@@ -55,9 +59,9 @@ jobs:
         run: |
           APK=android/app/build/outputs/apk/release/app-release.apk
           ls -lh "$APK"
-          APKSigner=$(find "$ANDROID_HOME/build-tools" -name apksigner | head -1)
-          "$APKSigner" verify --verbose --print-certs "$APK"
-      - name: رفع الـ APK
+          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -name apksigner | head -1)"
+          "$APKSIGNER" verify --verbose --print-certs "$APK"
+      - name: رفع APK
         uses: actions/upload-artifact@v4
         with:
           name: abu-jrin-market-release-apk
