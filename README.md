@@ -1,40 +1,80 @@
-# سوق أبو جرين
+# سوق قرية أبو جرين (Abu Jrin Village Market)
 
-Build an Arabic RTL web app called "سوق قرية أبو جرين" (Abu Jrin Village Market) — a local village marketplace. Language: Arabic only, RTL, large clear buttons, simple design for villagers.
+> تطبيق ويب عربي (من اليمين إلى اليسار) يجمع دكاكين قرية أبو جرين في سوق واحد: يبحث المشتري عن منتج، فيرى كل الدكاكين التي تبيعه وأسعارها، ويتصل أو يحجز عبر واتساب، ثم يستلم بنفسه من الدكان.
 
-HOME SCREEN (top to bottom): App name "سوق قرية أبو جرين" with login button, then a LARGE search bar first at the top: "ابحث عن منتج، مثل بطاطا...", then category buttons with icons: خضار، فواكه، بقالة، خبز، لحوم، منظفات، أخرى. Then a section "الأرخص اليوم" with products and cheapest price in the village. Then "الدكاكين القريبة منك" with open/closed status and working hours. Then a small map section for the village only. Bottom navigation: الرئيسية، البحث، الخريطة، دكاني، حسابي.
+## ما هو التطبيق؟
 
-CORE FEATURE: Buyer searches a product (e.g. potatoes). Show ALL village shops that sell it, each with: price in BOTH Syrian pound AND US dollar, stock, shop name, location/neighbourhood, phone, open/closed now and working hours, and optional product photo. Sort by cheapest price or nearest distance, highlight cheapest and nearest. Each product has two buttons: "اتصل بالدكان" (tel link) and "احجز عبر واتساب" (WhatsApp link with a ready message like "أريد 2 كغ بطاطا، سآتي بعد قليل"). No delivery at all — pickup only, buyer goes to the shop himself, cash on pickup.
+«سوق قرية أبو جرين» سوق محلي رقمي لقرية أبو جرين، يهدف إلى توفير الوقت والجهد على أهل القرية: بدل السؤال دكاناً دكاناً عن سعر منتج، يبحث المستخدم مرة واحدة ويقارن الأسعار والمسافات بين دكاكين القرية.
 
-SHOP OWNER: Dashboard to add/edit products, price (SYP and USD), stock, show/hide product, add optional product photo from camera or gallery. Shop registration is simple: shop name, owner name, phone, location pin on map OR descriptive village address (e.g. main street, near the mosque). A new shop stays PENDING until the admin (Ali) approves it once, then it appears and can add products.
+## ماذا يفعل؟ وأهم الميزات
 
-BUYER: registers by phone number.
+- **بحث كبير في الصفحة الرئيسية:** ابحث عن منتج (مثل البطاطا) دون الحاجة إلى تسجيل الدخول.
+- **مقارنة الأسعار:** عرض كل دكاكين القرية التي تبيع المنتج، مع السعر بالليرة السورية وبالدولار الأمريكي، والمخزون، واسم الدكان، وموقعه أو حارته، ورقم هاتفه، وحالة الفتح والإغلاق وساعات العمل، وصورة المنتج إن وجدت.
+- **ترتيب ذكي:** الترتيب حسب أرخص سعر أو أقرب مسافة، مع إبراز أرخص سعر وأقرب دكان.
+- **اتصل واحجز:** زر «اتصل بالدكان» وزر «احجز عبر واتساب» برسالة جاهزة مثل: «أريد 2 كغ بطاطا، سآتي بعد قليل».
+- **استلام من الدكان فقط:** لا يوجد توصيل في النسخة الحالية؛ المشتري يذهب إلى الدكان بنفسه، والدفع نقداً عند الاستلام.
+- **قسم «أرخص اليوم»:** منتجات وأرخص سعر لها في القرية.
+- **دكاكين القرية:** عرض الدكاكين مع حالة الفتح والإغلاق وساعات العمل.
+- **خريطة القرية:** خريطة صغيرة مقيّدة بالقرية فقط، مع دبابيس الدكاكين وروابط اتجاهات Google Maps.
+- **تنقل سفلي:** الرئيسية، البحث، الخريطة، دكاني، حسابي.
 
-ADMIN: Ali approves new shops only (no full delete role in v1).
+## للمشتري
 
-MAP: Use OpenStreetMap / Google Maps base map centred on Abu Jrin village, shop pins from stored lat/lng, small map and Google Maps directions link. Map view is LOCKED / bounded to the village only, with zoom limits, no panning to other towns, only village shops shown.
+1. افتح التطبيق واكتب اسم المنتج في شريط البحث.
+2. قارن الأسعار والمسافات، واختر الدكان الأنسب.
+3. اتصل بالدكان أو احجز عبر واتساب، ثم استلم طلبك من الدكان وادفع نقداً.
 
-DATA: Use demo data first: 3 small village shops (dukakin) e.g. دكان أبو أحمد، دكان أبو خالد، دكان أبو محمد, with demo products: بطاطا، طماطم، بصل، خبز، سكر، زيت, with different prices per shop so comparison is visible. Enable the database (Supabase) for shops/products/prices/stock/locations and product photos in Storage.
+للتسجيل كمستخدم يكفي رقم الهاتف؛ أما البحث والمقارنة فمتاحان دون تسجيل دخول.
 
-Do NOT build delivery, do NOT require buyer login to search, keep adding a product easy for a small shopkeeper.
+## لصاحب الدكان
 
-This project was built with [Lovable](https://lovable.dev).
+- لوحة تحكم لإضافة المنتجات وتعديلها: السعر بالليرة السورية وبالدولار، والمخزون، وإظهار المنتج أو إخفاؤه، وإضافة صورة من الكاميرا أو المعرض.
+- تسجيل الدكان بسيط: اسم الدكان، واسم صاحبه، ورقم الهاتف، وموقع الدكان على الخريطة أو وصف العنوان (مثل: الشارع الرئيسي، قرب المسجد).
+- يبقى الدكان الجديد بحالة «قيد الانتظار» حتى يوافق عليه المدير (علي) مرة واحدة، ثم يظهر في السوق ويستطيع إضافة منتجاته.
 
-## Build with Lovable
+## للمدير
 
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/05b1d69e-6986-4548-8d0b-12e008b4082f).
+المدير (علي) يوافق على الدكاكين الجديدة فقط في النسخة الحالية، ولا توجد صلاحية حذف كاملة.
 
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
+## البيانات التجريبية
 
-## Development
+يستخدم المشروع بيانات تجريبية أولاً: ثلاثة دكاكين صغيرة في القرية، مثل دكان أبو أحمد ودكان أبو خالد، مع منتجات تجريبية مثل البطاطا والطماطم والبصل والخبز والسكر والزيت، وبأسعار مختلفة من دكان لآخر لكي تظهر المقارنة بوضوح. وقاعدة البيانات (Supabase) جاهزة للدكاكين والمنتجات والأسعار والمخزون والمواقع وصور المنتجات في التخزين.
 
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+## التقنيات المستخدمة
 
-```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
+- **الواجهة:** React 19 مع TanStack Start وTanStack Router وTanStack Query
+- **البناء:** Vite وBun
+- **التصميم:** Tailwind CSS 4، ومكوّنات Radix UI
+- **الخريطة:** Leaflet وReact Leaflet
+- **البيانات:** Supabase وقاعدة بيانات Drizzle
+- **الاختبارات:** Vitest
+
+## التثبيت والتشغيل محلياً
+
+```bash
+git clone https://github.com/Ali-awwww/abu-jrin-market.git
+cd abu-jrin-market
+bun install
+bun dev
+```
+
+ثم افتح الرابط الذي يطبعه الخادم في المتصفح. ويمكن استخدام npm بدل Bun:
+
+```bash
+npm install
 npm run dev
 ```
+
+ولبناء نسخة الإنتاج:
+
+```bash
+bun run build
+bun run preview
+```
+
+## الروابط
+
+- المستودع: https://github.com/Ali-awwww/abu-jrin-market
+- الإصدارات: https://github.com/Ali-awwww/abu-jrin-market/releases
+- المشكلات والاقتراحات: https://github.com/Ali-awwww/abu-jrin-market/issues
+- التطوير في Lovable: https://lovable.dev/projects/05b1d69e-6986-4548-8d0b-12e008b4082f
