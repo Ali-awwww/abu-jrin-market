@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Camera, Eye, EyeOff, ImagePlus, Pencil, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MapBox } from "@/components/market/MapBox";
+import { PhotoReminder } from "@/components/market/PhotoReminder";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { CATEGORIES, categoryByName, categoryDescription, UNITS, formatSyp, formatUsd, withPhotoUrls, type Product, type Shop } from "@/lib/market";
@@ -127,6 +128,9 @@ function Dashboard({ shop, userId }: { shop: Shop; userId: string }) {
     await supabase.from("products").update({ visible: !p.visible }).eq("id", p.id);
     refresh();
   }
+  function startEdit(p: Product) {
+    setDraft({ id: p.id, name: p.name, category: p.category, description: p.description ?? "", unit: p.unit, price_syp: String(p.price_syp), price_usd: String(p.price_usd), stock: String(p.stock), photo_url: p.photo_url });
+  }
 
   return (
     <main className="space-y-4 px-4 pt-6">
@@ -137,21 +141,23 @@ function Dashboard({ shop, userId }: { shop: Shop; userId: string }) {
       {draft && <ProductForm draft={draft} shopId={shop.id} userId={userId} onDone={() => { setDraft(null); refresh(); }} />}
       <ul className="space-y-2">
         {products.data?.map((p) => (
-          <li key={p.id} className={`flex items-center gap-3 rounded-2xl border border-border bg-card p-3 shadow-soft ${p.visible ? "" : "opacity-60"}`}>
-            {p.photoSrc ? <img src={p.photoSrc} alt="" className="size-16 rounded-xl object-cover" /> : <div className="flex size-16 items-center justify-center rounded-xl bg-secondary text-2xl">🧺</div>}
-            <div className="min-w-0 flex-1">
-              <p className="text-lg font-bold">{p.name} {!p.visible && <span className="text-sm">(مخفي)</span>}</p>
-              {p.description ? <p className="text-sm text-muted-foreground">{p.description}</p> : null}
-              <p className="text-base">{formatSyp(p.price_syp)} · {formatUsd(p.price_usd)} / {p.unit}</p>
-              <p className="text-sm text-muted-foreground">الكمية: {p.stock}</p>
+          <li key={p.id} className={`space-y-2 rounded-2xl border border-border bg-card p-3 shadow-soft ${p.visible ? "" : "opacity-60"}`}>
+            <div className="flex items-center gap-3">
+              {p.photoSrc ? <img src={p.photoSrc} alt="" className="size-16 rounded-xl object-cover" /> : <div className="flex size-16 items-center justify-center rounded-xl bg-secondary text-2xl">🧺</div>}
+              <div className="min-w-0 flex-1">
+                <p className="text-lg font-bold">{p.name} {!p.visible && <span className="text-sm">(مخفي)</span>}</p>
+                {p.description ? <p className="text-sm text-muted-foreground">{p.description}</p> : null}
+                <p className="text-base">{formatSyp(p.price_syp)} · {formatUsd(p.price_usd)} / {p.unit}</p>
+                <p className="text-sm text-muted-foreground">الكمية: {p.stock}</p>
+              </div>
+              <Button variant="outline" size="icon" className="size-12" aria-label="تعديل" onClick={() => startEdit(p)}>
+                <Pencil />
+              </Button>
+              <Button variant="outline" size="icon" className="size-12" aria-label={p.visible ? "إخفاء" : "إظهار"} onClick={() => toggle(p)}>
+                {p.visible ? <Eye /> : <EyeOff />}
+              </Button>
             </div>
-            <Button variant="outline" size="icon" className="size-12" aria-label="تعديل"
-              onClick={() => setDraft({ id: p.id, name: p.name, category: p.category, description: p.description ?? "", unit: p.unit, price_syp: String(p.price_syp), price_usd: String(p.price_usd), stock: String(p.stock), photo_url: p.photo_url })}>
-              <Pencil />
-            </Button>
-            <Button variant="outline" size="icon" className="size-12" aria-label={p.visible ? "إخفاء" : "إظهار"} onClick={() => toggle(p)}>
-              {p.visible ? <Eye /> : <EyeOff />}
-            </Button>
+            <PhotoReminder productId={p.id} updatedAt={p.updated_at} hasPhoto={!!p.photo_url} onUpdateNow={() => startEdit(p)} />
           </li>
         ))}
       </ul>
