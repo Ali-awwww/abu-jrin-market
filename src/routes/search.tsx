@@ -6,7 +6,7 @@ import { OfferCard } from "@/components/market/OfferCard";
 import { useBuyerLocation } from "@/components/market/useLocation";
 import { CATEGORIES, cheapestId, fetchOffers, nearestId, shopDistance, sortOffers } from "@/lib/market";
 
-const POPULAR = ["بطاطا", "طماطم", "بصل", "خبز", "سكر", "زيت", "صابون"];
+const POPULAR = ["بطاطا", "طماطم", "بصل", "خبز", "سكر", "زيت", "صابون", "لبن", "بيض", "عسل", "زيت زيتون", "علف دجاج", "لحم غنم"];
 
 type S = { q: string | undefined; cat: string | undefined };
 

@@ -68,7 +68,7 @@ function Home() {
               key={c.name}
               to="/search"
               search={{ q: undefined, cat: c.name }}
-              className="flex flex-col items-center gap-1 rounded-2xl border border-border bg-card py-3 text-lg font-bold shadow-soft active:scale-95"
+              className="flex flex-col items-center gap-1 rounded-2xl border border-border bg-card px-1 py-3 text-center text-base font-bold leading-tight shadow-soft active:scale-95"
             >
               <span className="text-3xl">{c.icon}</span>
               {c.name}

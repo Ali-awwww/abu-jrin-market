@@ -11,7 +11,12 @@ export const CATEGORIES = [
   { name: "بقالة", icon: "🛒" },
   { name: "خبز", icon: "🍞" },
   { name: "لحوم", icon: "🍖" },
+  { name: "ألبان وأجبان", icon: "🧀" },
+  { name: "بيض", icon: "🥚" },
+  { name: "عسل وزيت زيتون", icon: "🍯" },
   { name: "منظفات", icon: "🧼" },
+  { name: "أعلاف ودواجن", icon: "🐔" },
+  { name: "أدوات منزلية", icon: "🍳" },
   { name: "أخرى", icon: "📦" },
 ] as const;
 export const UNITS = ["كغ", "قطعة", "ربطة", "لتر", "علبة", "كيس"];
