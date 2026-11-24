@@ -10,9 +10,9 @@ export const Route = createFileRoute("/admin")({
   head: () => ({
     meta: [
       { title: "الموافقة على الدكاكين — سوق أبو جرين" },
-      { name: "description", content: "صفحة المشرف للموافقة على الدكاكين الجديدة." },
+      { name: "description", content: "صفحة المشرف للموافقة على الدكاكين الجديدة أو رفضها." },
       { property: "og:title", content: "إدارة سوق أبو جرين" },
-      { property: "og:description", content: "الموافقة على الدكاكين الجديدة." },
+      { property: "og:description", content: "الموافقة على الدكاكين الجديدة أو رفضها." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },
@@ -48,6 +48,13 @@ function Admin() {
     qc.invalidateQueries({ queryKey: ["pending-shops"] });
     qc.invalidateQueries({ queryKey: ["shops"] });
   }
+  async function reject(id: string) {
+    const { error } = await supabase.from("shops").update({ status: "rejected" }).eq("id", id);
+    if (error) return void toast.error("تعذر الرفض");
+    toast.success("تم رفض الطلب");
+    qc.invalidateQueries({ queryKey: ["pending-shops"] });
+  }
+    
 
   return (
     <main className="space-y-4 px-4 pt-6">
@@ -60,6 +67,7 @@ function Admin() {
           <p dir="ltr" className="text-right">📞 {s.phone}</p>
           <p>📍 {s.address || "—"} {s.lat != null && "(محدد على الخريطة)"}</p>
           <Button size="xl" className="mt-2 w-full" onClick={() => approve(s.id)}>موافقة</Button>
+          <Button size="xl" variant="destructive"  className="mt-2 w-full" onClick={() => reject(s.id)}>رفض</Button>
         </div>
       ))}
     </main>
