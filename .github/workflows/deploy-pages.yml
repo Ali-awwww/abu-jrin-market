@@ -1,21 +1,17 @@
 # نشر سوق قرية أبو جرين على GitHub Pages (مجاني، بدون دومين مدفوع).
-# يبني التطبيق كما هو (وضع SPA، المجلد dist)، وينشر الملفات الثابتة الناتجة عن البناء.
+# يبني التطبيق كما هو (وضع SPA، مخرجات العميل في dist/client)، وينشر الملفات الثابتة الناتجة عن البناء.
 name: نشر الموقع على GitHub Pages
-
 on:
   push:
     branches: [main]
   workflow_dispatch:
-
 permissions:
   contents: read
   pages: write
   id-token: write
-
 concurrency:
   group: pages
   cancel-in-progress: false
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -32,7 +28,9 @@ jobs:
         run: bunx vite build --base=/abu-jrin-market/
       - name: تجهيز مجلد النشر
         run: |
-          if [ -d dist ]; then
+          if [ -f dist/client/index.html ]; then
+            WEB_DIR=dist/client
+          elif [ -d dist ]; then
             WEB_DIR=dist
           elif [ -d .output/public ]; then
             WEB_DIR=.output/public
