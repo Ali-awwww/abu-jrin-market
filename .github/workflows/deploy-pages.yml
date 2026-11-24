@@ -28,16 +28,25 @@ jobs:
         run: bunx vite build --base=/abu-jrin-market/
       - name: تجهيز مجلد النشر
         run: |
+          echo "--- كل ملفات dist بعد البناء ---"
+          find dist -type f | sort | head -100
           if [ -f dist/client/index.html ]; then
             WEB_DIR=dist/client
-          elif [ -d dist ]; then
-            WEB_DIR=dist
-          elif [ -d .output/public ]; then
-            WEB_DIR=.output/public
           else
-            echo "لا يوجد مجلد بناء (dist أو .output/public)" >&2
-            ls -la
-            exit 1
+            HTML_FILE=$(find dist -name "index.html" -type f | head -n 1)
+            if [ -n "$HTML_FILE" ]; then
+              echo "نُسخ $HTML_FILE إلى dist/client/index.html"
+              cp "$HTML_FILE" dist/client/index.html
+              WEB_DIR=dist/client
+            elif [ -f dist/index.html ]; then
+              WEB_DIR=dist
+            elif [ -d .output/public ]; then
+              WEB_DIR=.output/public
+            else
+              echo "لا يوجد index.html بعد البناء" >&2
+              ls -la
+              exit 1
+            fi
           fi
           echo "WEB_DIR=$WEB_DIR" >> "$GITHUB_ENV"
           ls -la "$WEB_DIR" | head -60
