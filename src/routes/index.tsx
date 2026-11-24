@@ -15,7 +15,7 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "سوق قرية أبو جرين — أرخص الأسعار في دكاكين القرية" },
-      { name: "description", content: "ابحث عن أي منتج وقارن أسعار دكاكين أبو جرين بالليرة والدولار، ثم احجز عبر واتساب واستلم بنفسك." },
+      { name: "description", content: "ابحث عن أي منتج وقارن أسعار دكاكين أبو جرين قرب السفيرة في محافظة حلب بالليرة والدولار، ثم احجز عبر واتساب واستلم بنفسك." },
       { property: "og:title", content: "سوق قرية أبو جرين" },
       { property: "og:description", content: "قارن أسعار دكاكين القرية واحجز للاستلام من الدكان." },
       { property: "og:type", content: "website" },
@@ -50,6 +50,7 @@ function Home() {
         <div>
           <h1 className="text-2xl font-extrabold">سوق قرية أبو جرين</h1>
           <p className="text-base opacity-90">أسعار دكاكين القرية · استلام من الدكان</p>
+          <p className="text-base opacity-90">📍 قرية أبو جرين قرب السفيرة في محافظة حلب</p>
         </div>
         {!user && (
           <Link to="/account" className="flex shrink-0 items-center gap-1 rounded-xl bg-card px-4 py-3 text-lg font-bold text-primary">
