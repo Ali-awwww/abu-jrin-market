@@ -6,19 +6,32 @@ export const VILLAGE_BOUNDS: [[number, number], [number, number]] = [
   [36.0555, 37.4618],
 ];
 export const CATEGORIES = [
-  { name: "خضار", icon: "🥔" },
-  { name: "فواكه", icon: "🍎" },
-  { name: "بقالة", icon: "🛒" },
-  { name: "خبز", icon: "🍞" },
-  { name: "لحوم", icon: "🍖" },
-  { name: "ألبان وأجبان", icon: "🧀" },
-  { name: "بيض", icon: "🥚" },
-  { name: "عسل وزيت زيتون", icon: "🍯" },
-  { name: "منظفات", icon: "🧼" },
-  { name: "أعلاف ودواجن", icon: "🐔" },
-  { name: "أدوات منزلية", icon: "🍳" },
-  { name: "أخرى", icon: "📦" },
+  { name: "خضار", icon: "🥔", description: "خضار طازجة من دكاكين القرية" },
+  { name: "فواكه", icon: "🍎", description: "فواكه طازجة وموسمية" },
+  { name: "بقالة", icon: "🛒", description: "مواد البقالة والتموين اليومي" },
+  { name: "خبز", icon: "🍞", description: "خبز طازج ومعجنات" },
+  { name: "لحوم", icon: "🍖", description: "لحوم طازجة من دكاكين القرية" },
+  { name: "ألبان وأجبان", icon: "🧀", description: "ألبان وأجبان طازجة" },
+  { name: "بيض", icon: "🥚", description: "بيض طازج" },
+  { name: "عسل وزيت زيتون", icon: "🍯", description: "عسل وزيت زيتون من إنتاج القرية" },
+  { name: "منظفات", icon: "🧼", description: "منظفات ومواد تنظيف للبيت" },
+  { name: "أعلاف ودواجن", icon: "🐔", description: "أعلاف ودواجن" },
+  { name: "أدوات بناء", icon: "🧱", description: "أدوات ومواد البناء، مثل الإسمنت والحديد والأدوات اليدوية" },
+  { name: "أدوات منزلية", icon: "🍳", description: "أدوات المطبخ والبيت والأواني والأدوات المنزلية" },
+  { name: "أخرى", icon: "📦", description: "أي منتج آخر من منتجات القرية لا ينتمي إلى التصنيفات السابقة، ويكتب البائع وصف المنتج عند إضافته" },
 ] as const;
+
+/** التصنيف بالاسم، أو undefined إن لم يكن موجوداً. */
+export function categoryByName(name: string | undefined | null) {
+  if (!name) return undefined;
+  return CATEGORIES.find((c) => c.name === name);
+}
+
+/** وصف التصنيف بالاسم، أو سلسلة فارغة إن لم يكن له وصف. */
+export function categoryDescription(name: string | undefined | null) {
+  return categoryByName(name)?.description ?? "";
+}
+
 export const UNITS = ["كغ", "قطعة", "ربطة", "لتر", "علبة", "كيس"];
 
 export type Shop = {
@@ -40,6 +53,7 @@ export type Product = {
   shop_id: string;
   name: string;
   category: string;
+  description?: string | null;
   unit: string;
   price_syp: number;
   price_usd: number;
