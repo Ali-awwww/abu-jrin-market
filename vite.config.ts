@@ -20,15 +20,24 @@ export default defineConfig({
     tailwindcss(),
     tsConfigPaths(),
   ],
-  // مدخل بيئة العميل صراحةً لـ Rollup: إصدار @tanstack/start-plugin-core
-  // المثبّت (1.172.0) يضبط مدخل العميل في rolldownOptions فقط، فيتجاهله
-  // Vite العادي ويعود إلى index.html غير الموجود. ملف src/client.tsx
-  // هو دخول العميل القياسي نفسه الذي يستخدمه الإطار افتراضياً.
+  // مدخلا بيئتَي العميل والخادم صراحةً لـ Rollup: إصدار
+  // @tanstack/start-plugin-core المثبّت (1.172.0) يضبط مدخل العميل
+  // في rolldownOptions فقط، فيتجاهله Vite العادي ويعود إلى
+  // index.html غير الموجود، ومدخل SSR من دون ضبط صريح يعود
+  // إلى index.html أيضاً وهو غير مسموح في بناء SSR.
+  // src/client.tsx و src/server.ts هما دخولا الإطار القياسيان.
   environments: {
     client: {
       build: {
         rollupOptions: {
           input: { index: "src/client.tsx" },
+        },
+      },
+    },
+    ssr: {
+      build: {
+        rollupOptions: {
+          input: { index: "src/server.ts" },
         },
       },
     },
