@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { phoneToEmail } from "@/lib/market";
+import { intlPhone, phoneToEmail } from "@/lib/market";
 import { fieldCls } from "@/lib/ui";
 
 export const Route = createFileRoute("/account")({
@@ -59,11 +59,11 @@ function Account() {
     const email = phoneToEmail(phone);
     const res =
       mode === "signup"
-        ? await supabase.auth.signUp({ email, password, options: { data: { phone: digits, full_name: name } } })
+        ? await supabase.auth.signUp({ email, password, options: { data: { phone: intlPhone(phone).replace(/^963/, "0"), full_name: name } } })
         : await supabase.auth.signInWithPassword({ email, password });
     setBusy(false);
     if (res.error) {
-      toast.error(mode === "signup" ? "هذا الرقم مسجل مسبقاً أو حدث خطأ" : "الرقم أو كلمة السر غير صحيحة");
+      toast.error(mode === "signup" ? (/already registered/i.test(res.error.message || "") ? "هذا الرقم مسجل مسبقاً، جرّب تسجيل الدخول" : "تعذّر إنشاء الحساب: " + (res.error.message || "")) : (/email not confirmed/i.test(res.error.message || "") ? "الحساب غير مؤكّد بعد" : "الرقم أو كلمة السر غير صحيحة"));
       return;
     }
     toast.success(mode === "signup" ? "تم التسجيل بنجاح" : "أهلاً بك");
