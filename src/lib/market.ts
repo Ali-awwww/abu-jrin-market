@@ -199,6 +199,8 @@ export function intlPhone(phone: string) {
   if (d.startsWith("0")) d = "963" + d.slice(1);
   return d;
 }
+
+
 export function whatsappLink(phone: string, product: string, unit: string, qty = 2) {
   const msg = `مرحباً، أريد ${qty} ${unit} ${product}، سآتي بعد قليل لأستلمها وأدفع نقداً.`;
   return `https://wa.me/${intlPhone(phone)}?text=${encodeURIComponent(msg)}`;
@@ -208,8 +210,8 @@ export function directionsLink(s: Shop) {
     ? `https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lng}`
     : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.address + " أبو جرين")}`;
 }
-export function phoneToEmail(phone: string) {
-  return `${intlPhone(phone)}@abujrin.app`;
+export function phoneToEmail(phone: string) { // Synthetic email, never mailed; domain must resolve in DNS (Supabase validates it).
+  return `${intlPhone(phone)}@bgthgxflcrikwbybvebz.supabase.co`;
 }
 
 export async function withPhotoUrls<T extends { photo_url: string | null }>(items: T[]) {
