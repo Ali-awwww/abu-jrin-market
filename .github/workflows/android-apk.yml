@@ -32,6 +32,9 @@ jobs:
           java-version: 17
       - name: تثبيت Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          # الافتراضي في v3 يثبّت حزمة «tools» المحذوفة من مستودع Google فيفشل sdkmanager؛ نثبّت صراحةً ما يحتاجه Capacitor 7 فقط.
+          packages: platform-tools build-tools;35.0.0 platforms;android-35
       - name: تثبيت الاعتماديات
         run: bun install
       - name: بناء نسخة الويب (SPA)
