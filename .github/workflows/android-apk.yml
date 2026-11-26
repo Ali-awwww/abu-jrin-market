@@ -60,10 +60,10 @@ jobs:
           node_modules/.bin/cap sync android
       - name: ضبط إصدار أندرويد (versionCode و versionName)
         run: |
-          sed -i 's/versionCode 1/versionCode 3/g' android/app/build.gradle
-          sed -i 's/versionCode 2/versionCode 3/g' android/app/build.gradle
-          sed -i 's/versionName "1.0"/versionName "1.3"/g' android/app/build.gradle
-          sed -i 's/versionName "1.2"/versionName "1.3"/g' android/app/build.gradle
+        sed -i 's/versionCode 1/versionCode 4/g' android/app/build.gradle
+        sed -i 's/versionCode 2/versionCode 4/g' android/app/build.gradle
+        sed -i 's/versionName "1.0"/versionName "1.4"/g' android/app/build.gradle
+        sed -i 's/versionName "1.2"/versionName "1.4"/g' android/app/build.gradle
       - name: بناء APK بتوقيع Release
         run: |
           cd android
