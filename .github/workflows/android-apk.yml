@@ -78,9 +78,9 @@ jobs:
           name: abu-jrin-market-release-apk
           path: android/app/build/outputs/apk/release/app-release.apk
           retention-days: 30
-      - name: عرض معلومات APK
+      - name: APK info
         run: |
-        APK=android/app/build/outputs/apk/release/app-release.apk
-        sha256sum "$APK"
-        AAPT2="$(find "$ANDROID_HOME/build-tools" -name aapt2 | head -1)"
-        "$AAPT2" dump badging "$APK" | grep -E "^package:|^application-label:"
+          APK=android/app/build/outputs/apk/release/app-release.apk
+          sha256sum "$APK"
+          AAPT2="$(find "$ANDROID_HOME/build-tools" -name aapt2 | head -1)"
+          "$AAPT2" dump badging "$APK" | grep -E "^package:|^application-label:"
