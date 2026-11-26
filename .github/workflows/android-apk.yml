@@ -8,15 +8,14 @@ on:
     branches: [main]
   workflow_dispatch:
     inputs:
-    publish_release:
-    description: "إنشاء إصدار GitHub وإرفاق APK به"
-    type: boolean
-    default: false
-release_tag:
-description: "وسم الإصدار (مثال: v1.1)"
-type: string
-default: "v1.1"
-
+      publish_release:
+      description: "إنشاء إصدار GitHub وإرفاق APK به"
+      type: boolean
+      default: false
+      release_tag:
+        description: "وسم الإصدار (مثال: v1.1)"
+        type: string
+        default: "v1.1"
 permissions:
   contents: write
 
@@ -79,10 +78,9 @@ jobs:
           name: abu-jrin-market-release-apk
           path: android/app/build/outputs/apk/release/app-release.apk
           retention-days: 30
-                - name: "عرض معلومات APK"
-                run: |
-                APK=android/app/build/outputs/apk/release/app-release.apk
-                sha256sum "$APK"
-                AAPT2="$(find "$ANDROID_HOME/build-tools" -name aapt2 | head -1)"
-                "$AAPT2" dump badging "$APK" | grep -E "^package:|^application-label:"
-          
+      - name: عرض معلومات APK
+        run: |
+        APK=android/app/build/outputs/apk/release/app-release.apk
+        sha256sum "$APK"
+        AAPT2="$(find "$ANDROID_HOME/build-tools" -name aapt2 | head -1)"
+        "$AAPT2" dump badging "$APK" | grep -E "^package:|^application-label:"
