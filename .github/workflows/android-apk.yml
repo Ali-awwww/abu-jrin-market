@@ -9,9 +9,8 @@ on:
   workflow_dispatch:
     inputs:
       publish_release:
-      description: "إنشاء إصدار GitHub وإرفاق APK به"
-      type: boolean
-      default: false
+      type: string
+      default: "false"
       release_tag:
         description: "وسم الإصدار (مثال: v1.1)"
         type: string
