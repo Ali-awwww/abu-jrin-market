@@ -8,9 +8,6 @@ on:
     branches: [main]
   workflow_dispatch:
     inputs:
-      publish_release:
-      type: string
-      default: "false"
       release_tag:
         description: "وسم الإصدار (مثال: v1.1)"
         type: string
@@ -83,3 +80,11 @@ jobs:
           sha256sum "$APK"
           AAPT2="$(find "$ANDROID_HOME/build-tools" -name aapt2 | head -1)"
           "$AAPT2" dump badging "$APK" | grep -E "^package:|^application-label:"
+      - name: Publish release
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.release_tag }}
+        run: |
+          APK=android/app/build/outputs/apk/release/app-release.apk
+          gh release create "$TAG" "$APK" --title "$TAG" --notes "تطبيق أندرويد - نسخة Release موقعة"
