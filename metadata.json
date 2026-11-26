@@ -1,0 +1,5 @@
+{
+  "name": "Abu Jrin Market",
+  "description": "A local village marketplace application for Abu Jrin",
+  "capabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

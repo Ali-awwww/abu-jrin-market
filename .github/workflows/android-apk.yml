@@ -58,6 +58,10 @@ jobs:
           test -f capacitor.config.ts || node_modules/.bin/cap init "سوق أبو جرين" com.abujrin.market --web-dir=dist/client
           node_modules/.bin/cap add android
           node_modules/.bin/cap sync android
+      - name: ضبط إصدار أندرويد (versionCode و versionName)
+        run: |
+          sed -i 's/versionCode 1/versionCode 2/g' android/app/build.gradle
+          sed -i 's/versionName "1.0"/versionName "1.2"/g' android/app/build.gradle
       - name: بناء APK بتوقيع Release
         run: |
           cd android
