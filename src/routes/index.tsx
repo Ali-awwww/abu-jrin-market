@@ -141,7 +141,7 @@ function Home() {
         <MapBox shops={shops.data ?? []} height={220} />
       </section>
       <section className="pb-2 text-center">
-            <a href="https://apps-showcase.pages.dev" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-lg font-bold text-primary-foreground shadow-soft">تطبيقاتنا</a>a>
+            <a href="https://apps-showcase.pages.dev" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-lg font-bold text-primary-foreground shadow-soft">تطبيقاتنا</a>
       </section>
     </main>
   );
