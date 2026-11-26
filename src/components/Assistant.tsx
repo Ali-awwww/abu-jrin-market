@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Mic, MicOff, Send, MessageSquare, X, Volume2, VolumeX, Phone, MessageCircle, MapPin, Store } from "lucide-react";
-import { answerAssistantQuery } from "@/lib/assistant";
+import { askAssistant } from "@/lib/assistant";
 import { formatSyp, formatUsd, whatsappLink, type Offer } from "@/lib/market";
 
 type Message = {
@@ -17,7 +17,7 @@ export function Assistant() {
     {
       id: "1",
       sender: "assistant",
-      text: "أهلاً بك! أنا مساعد سوق قرية أبو جرين. اسألني عن أي منتج أو دكان وسأبحث لك في دكاكين القرية مباشرة.",
+      text: "أهلاً بك! أنا مساعد سوق قرية أبو جرين. اسألني عن أي منتج أو دكان وسأساعدك بكل ود.",
     },
   ]);
   const [loading, setLoading] = useState(false);
@@ -48,26 +48,32 @@ export function Assistant() {
     if (!q || loading) return;
 
     const userMsg: Message = { id: Date.now().toString(), sender: "user", text: q };
-    setMessages((prev) => [...prev, userMsg]);
+    const newMessages = [...messages, userMsg];
+    setMessages(newMessages);
     if (!queryText) setInput("");
     setLoading(true);
 
+    const history = newMessages.slice(0, -1).map((m) => ({
+      role: m.sender === "user" ? ("user" as const) : ("assistant" as const),
+      content: m.text,
+    }));
+
     try {
-      const res = await answerAssistantQuery(q);
+      const res = await askAssistant(q, history);
       const assistantMsg: Message = {
         id: (Date.now() + 1).toString(),
         sender: "assistant",
-        text: res.text,
+        text: res.reply,
         offers: res.offers,
       };
       setMessages((prev) => [...prev, assistantMsg]);
-      speakText(res.text);
+      speakText(res.reply);
     } catch (err) {
       console.error("Assistant error:", err);
       const errMsg: Message = {
         id: (Date.now() + 1).toString(),
         sender: "assistant",
-        text: "عذراً، حدث خطأ أثناء الاتصال بقاعدة البيانات. يرجى التأكد من اتصال الإنترنت والمحاولة مرة أخرى.",
+        text: "تعذّر الوصول إلى المساعد الآن، حاول لاحقاً",
       };
       setMessages((prev) => [...prev, errMsg]);
     } finally {
@@ -176,7 +182,7 @@ export function Assistant() {
                 className={`flex flex-col ${m.sender === "user" ? "items-start" : "items-end"}`}
               >
                 <div
-                  className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
+                  className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap ${
                     m.sender === "user"
                       ? "bg-primary text-primary-foreground rounded-br-none"
                       : "bg-card text-card-foreground border shadow-sm rounded-bl-none"
@@ -241,7 +247,7 @@ export function Assistant() {
             {loading && (
               <div className="flex justify-end">
                 <div className="bg-card text-card-foreground border shadow-sm rounded-2xl rounded-bl-none px-4 py-3 text-sm animate-pulse">
-                  جاري البحث في دكاكين القرية...
+                  المساعد يفكر ويرد...
                 </div>
               </div>
             )}
@@ -272,7 +278,7 @@ export function Assistant() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSend()}
-              placeholder="اكتب طلبك (مثال: شوفلي بطاطا)..."
+              placeholder="اسأل المساعد (مثال: شو عند دكان أبو أحمد؟)..."
               className="flex-1 rounded-xl border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             />
 

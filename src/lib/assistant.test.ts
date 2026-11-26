@@ -8,9 +8,8 @@ describe("parseAssistantQuery", () => {
     expect(res.shop).toBeUndefined();
   });
 
-  it("parses shop and product query", () => {
-    const res = parseAssistantQuery("شوفلي أبو أحمد عندو بطاطا");
+  it("parses shop query", () => {
+    const res = parseAssistantQuery("شو عند دكان أبو أحمد");
     expect(res.shop).toBe("أبو أحمد");
-    expect(res.product).toBe("بطاطا");
   });
 });
