@@ -1,15 +1,15 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+
 // Uses the Gemini Interactions API (the recommended API for current models
-// such as gemini-3.8-flash). The legacy generateContent endpoint hangs
+// such as gemini-3.5-flash-lite). The legacy generateContent endpoint hangs
 // for this model, so it is not used here. If the primary model is
-// overloaded (HTTP 503), the next model in the list is tried.
-const MODELS = ['gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-3.5-flash-lite'];
+// overloaded (HTTP 503), the request is retried a couple of times.
+const MODEL = 'gemini-3.5-flash-lite';
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -22,9 +22,9 @@ serve(async (req) => {
     if (!apiKey) {
       throw new Error('GEMINI_API_KEY is not set in Supabase secrets');
     }
-    const systemInstruction = `أنت مساعد سوق قرية أبو جرين، تكلّم بالعربية وبودّ وبشكل حواري طبيعي. أجب فقط من بيانات Supabase المرفقة في السياق، ولا تخترع
-أبداً دكاناً أو منتجاً أو سعراً أو توفراً. وإذا كانت قاعدة البيانات فارغة فقل ذلك بصدق. ردّ على التحيات بتحية طبيعية، والأسئلة عن السوق الحالية تجيب عنها بصدق. بيانات السوق الحالية:
-${context || 'لا توجد بيانات متاحة حالياً.'}`;
+    
+    const systemInstruction = `أنت مساعد سوق قرية أبو جرين، تكلّم بالعربية وبودّ وبشكل حواري طبيعي. أجب فقط من بيانات Supabase الحقيقية المرفقة في السياق، ولا تخترع أبداً دكاناً أو منتجاً أو سعراً أو توفراً. وإذا كانت قاعدة البيانات فارغة، قل ذلك بصدق. التحيات ردّ عليها بتحية طبيعية، والأسئلة تجب عنها بصدق. بيانات السوق الحالية:
+${context || 'لا توجد بيانات متاحة حالياً'}`;
 
     const input = [];
     if (Array.isArray(history)) {
@@ -41,7 +41,7 @@ ${context || 'لا توجد بيانات متاحة حالياً.'}`;
     });
 
     let lastError = '';
-    for (const model of MODELS) {
+    for (let attempt = 0; attempt < 3; attempt++) {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 20000);
       let geminiRes;
@@ -55,7 +55,7 @@ ${context || 'لا توجد بيانات متاحة حالياً.'}`;
               'x-goog-api-key': apiKey,
             },
             body: JSON.stringify({
-              model,
+              model: MODEL,
               system_instruction: systemInstruction,
               generation_config: { thinking_level: 'low' },
               store: false,
@@ -88,7 +88,7 @@ ${context || 'لا توجد بيانات متاحة حالياً.'}`;
           reply += step.content.map((c) => c.text || '').join('');
         }
       }
-      if (!reply) reply = "عذراً، لم أتمكن من صياغة ردّ.";
+      if (!reply) reply = 'عذراً، لم أتمكن من صياغة رد.';
 
       return new Response(
         JSON.stringify({ reply }),
@@ -96,10 +96,10 @@ ${context || 'لا توجد بيانات متاحة حالياً.'}`;
       );
     }
 
-    throw new Error(lastError || 'All Gemini models failed');
+    throw new Error(lastError || 'Gemini request failed');
   } catch (error: unknown) {
     const errMessage = error instanceof Error ? error.message : String(error);
-    console.error("Chat assistant error:", error);
+    console.error('Chat assistant error:', error);
     return new Response(
       JSON.stringify({ error: errMessage || 'Internal error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
