@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Mic, MicOff, Send, MessageSquare, X, Volume2, VolumeX, Phone, MessageCircle, MapPin, Store } from "lucide-react";
+import { Capacitor } from "@capacitor/core";
+import { SpeechRecognition } from "@capacitor-community/speech-recognition";
+import { TextToSpeech } from "@capacitor-community/text-to-speech";
 import { askAssistant } from "@/lib/assistant";
 import { formatSyp, formatUsd, whatsappLink, type Offer } from "@/lib/market";
 
@@ -9,6 +12,15 @@ type Message = {
   text: string;
   offers?: Offer[];
 };
+
+type VoiceStatus = {
+  text: string;
+  actionLabel?: string | undefined;
+  onAction?: (() => void) | undefined;
+} | null;
+
+// اللغة العربية المستخدمة في كل مكان في التطبيق (نفسها في كود الويب القديم)
+const AR_LOCALE = "ar-SA";
 
 export function Assistant() {
   const [isOpen, setIsOpen] = useState(false);
@@ -23,23 +35,96 @@ export function Assistant() {
   const [loading, setLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  const [voiceStatus, setVoiceStatus] = useState<VoiceStatus>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recognitionRef = useRef<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const voiceStatusTimerRef = useRef<number | null>(null);
+  const nativeStopRequestedRef = useRef(false);
+  const ttsLangCheckedRef = useRef(false);
+  const ttsLangSupportedRef = useRef(true);
+
+  const showVoiceStatus = (text: string, actionLabel?: string, onAction?: () => void) => {
+    setVoiceStatus({ text, actionLabel, onAction });
+    if (voiceStatusTimerRef.current) window.clearTimeout(voiceStatusTimerRef.current);
+    voiceStatusTimerRef.current = window.setTimeout(() => setVoiceStatus(null), 8000);
+  };
+
+  const stopSpeaking = async () => {
+    try {
+      if (Capacitor.isNativePlatform()) {
+        await TextToSpeech.stop();
+      } else if (typeof window !== "undefined" && "speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+    } catch {
+      // Ignore stop errors
+    }
+  };
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isOpen]);
 
-  const speakText = (text: string) => {
-    if (isMuted || typeof window === "undefined" || !("speechSynthesis" in window)) return;
+  useEffect(() => {
+    if (!isOpen) void stopSpeaking();
+  }, [isOpen]);
+
+  useEffect(() => {
+    return () => {
+      if (voiceStatusTimerRef.current) window.clearTimeout(voiceStatusTimerRef.current);
+      void stopSpeaking();
+    };
+  }, []);
+
+  const speakText = async (text: string) => {
+    if (isMuted) return;
+
+    // التطبيق الأصلي (أندرويد): محرك تحويل النص إلى كلام الأصلي عبر إضافة Capacitor
+    if (Capacitor.isNativePlatform()) {
+      try {
+        if (!ttsLangCheckedRef.current) {
+          ttsLangCheckedRef.current = true;
+          try {
+            const { supported } = await TextToSpeech.isLanguageSupported({ lang: AR_LOCALE });
+            ttsLangSupportedRef.current = supported;
+          } catch {
+            // إن فشل الفحص نفسه، نحاول القراءة على أي حال
+            ttsLangSupportedRef.current = true;
+          }
+        }
+        if (!ttsLangSupportedRef.current) {
+          showVoiceStatus(
+            "الصوت العربي غير مثبّت على هذا الجهاز — ثبّت بيانات الصوت العربي من إعدادات تحويل النص إلى كلام.",
+            "تثبيت الصوت",
+            () => {
+              void TextToSpeech.openInstall().catch(() => undefined);
+            }
+          );
+          return;
+        }
+        await TextToSpeech.stop();
+        await TextToSpeech.speak({ text, lang: AR_LOCALE, rate: 1.0, pitch: 1.0, volume: 1.0 });
+      } catch (e) {
+        console.error("Native TTS error:", e);
+        showVoiceStatus("تعذّرت قراءة الرد صوتياً على هذا الجهاز.");
+      }
+      return;
+    }
+
+    // المتصفح: واجهة الويب كما كانت
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+      showVoiceStatus("متصفحك لا يدعم قراءة النص صوتياً.");
+      return;
+    }
     try {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = "ar-SA";
+      utterance.lang = AR_LOCALE;
       window.speechSynthesis.speak(utterance);
     } catch (e) {
       console.error("Speech synthesis error:", e);
+      showVoiceStatus("تعذّرت قراءة الرد صوتياً.");
     }
   };
 
@@ -67,7 +152,7 @@ export function Assistant() {
         offers: res.offers,
       };
       setMessages((prev) => [...prev, assistantMsg]);
-      speakText(res.reply);
+      void speakText(res.reply);
     } catch (err) {
       console.error("Assistant error:", err);
       const errMsg: Message = {
@@ -81,17 +166,67 @@ export function Assistant() {
     }
   };
 
+  const startRecordingNative = async () => {
+    try {
+      const { available } = await SpeechRecognition.available();
+      if (!available) {
+        showVoiceStatus("التعرف الصوتي غير متوفر على هذا الجهاز.");
+        return;
+      }
+      let perm = await SpeechRecognition.checkPermissions();
+      if (perm.speechRecognition !== "granted") {
+        perm = await SpeechRecognition.requestPermissions();
+      }
+      if (perm.speechRecognition !== "granted") {
+        showVoiceStatus("لم تسمح بالميكروفون — فعّل إذن الميكروفون من إعدادات التطبيق ثم حاول مجدداً.");
+        return;
+      }
+      nativeStopRequestedRef.current = false;
+      setIsRecording(true);
+      const { matches } = await SpeechRecognition.start({
+        language: AR_LOCALE,
+        maxResults: 1,
+        prompt: "تحدث الآن",
+        partialResults: false,
+        popup: true,
+      });
+      setIsRecording(false);
+      const transcript = matches && matches[0] ? matches[0].trim() : "";
+      if (transcript) {
+        setInput(transcript);
+        void handleSend(transcript);
+      }
+    } catch (e) {
+      setIsRecording(false);
+      if (nativeStopRequestedRef.current) {
+        nativeStopRequestedRef.current = false;
+        return;
+      }
+      const msg = e instanceof Error ? e.message : String(e ?? "");
+      if (/cancel/i.test(msg)) return;
+      console.error("Native speech recognition error:", e);
+      showVoiceStatus("تعذّر التعرف على الصوت، حاول مجدداً.");
+    }
+  };
+
   const startRecording = () => {
+    // التطبيق الأصلي: التعرف الصوتي الأصلي عبر إضافة Capacitor
+    if (Capacitor.isNativePlatform()) {
+      void startRecordingNative();
+      return;
+    }
+
+    // المتصفح: واجهة الويب كما كانت
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      alert("متصفحك لا يدعم التعرف الصوتي.");
+    const SpeechRecognitionCtor = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognitionCtor) {
+      showVoiceStatus("متصفحك لا يدعم التعرف الصوتي.");
       return;
     }
 
     try {
-      const recognition = new SpeechRecognition();
-      recognition.lang = "ar-SA";
+      const recognition = new SpeechRecognitionCtor();
+      recognition.lang = AR_LOCALE;
       recognition.interimResults = false;
       recognition.maxAlternatives = 1;
 
@@ -104,7 +239,7 @@ export function Assistant() {
         const transcript = event.results[0][0].transcript;
         if (transcript) {
           setInput(transcript);
-          handleSend(transcript);
+          void handleSend(transcript);
         }
       };
 
@@ -112,6 +247,7 @@ export function Assistant() {
       recognition.onerror = (event: any) => {
         console.error("Speech recognition error:", event.error);
         setIsRecording(false);
+        showVoiceStatus("تعذّر التعرف على الصوت، حاول مجدداً.");
       };
 
       recognition.onend = () => {
@@ -123,11 +259,19 @@ export function Assistant() {
     } catch (e) {
       console.error("Failed to start speech recognition:", e);
       setIsRecording(false);
+      showVoiceStatus("تعذّر بدء التعرف الصوتي.");
     }
   };
 
-  const stopRecording = () => {
-    if (recognitionRef.current) {
+  const stopRecording = async () => {
+    if (Capacitor.isNativePlatform()) {
+      nativeStopRequestedRef.current = true;
+      try {
+        await SpeechRecognition.stop();
+      } catch {
+        // Ignore stop error
+      }
+    } else if (recognitionRef.current) {
       try {
         recognitionRef.current.stop();
       } catch {
@@ -159,14 +303,21 @@ export function Assistant() {
             </div>
             <div className="flex items-center gap-1">
               <button
-                onClick={() => setIsMuted(!isMuted)}
+                onClick={() => {
+                  const next = !isMuted;
+                  setIsMuted(next);
+                  if (next) void stopSpeaking();
+                }}
                 className="p-1.5 rounded-lg hover:bg-primary-foreground/10 text-primary-foreground transition-colors"
                 title={isMuted ? "تشغيل الصوت" : "كتم الصوت"}
               >
                 {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
               </button>
               <button
-                onClick={() => setIsOpen(false)}
+                onClick={() => {
+                  void stopSpeaking();
+                  setIsOpen(false);
+                }}
                 className="p-1.5 rounded-lg hover:bg-primary-foreground/10 text-primary-foreground transition-colors"
                 title="إغلاق"
               >
@@ -253,6 +404,26 @@ export function Assistant() {
             )}
             <div ref={messagesEndRef} />
           </div>
+
+          {voiceStatus && (
+            <div className="flex items-center justify-between gap-2 border-t bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-900 dark:bg-amber-900/40 dark:text-amber-100">
+              <span>{voiceStatus.text}</span>
+              <span className="flex shrink-0 items-center gap-2">
+                {voiceStatus.actionLabel && voiceStatus.onAction && (
+                  <button onClick={voiceStatus.onAction} className="font-bold underline">
+                    {voiceStatus.actionLabel}
+                  </button>
+                )}
+                <button
+                  onClick={() => setVoiceStatus(null)}
+                  aria-label="إغلاق التنبيه"
+                  className="rounded p-0.5 hover:bg-amber-100 dark:hover:bg-amber-800"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </span>
+            </div>
+          )}
 
           <div className="p-3 border-t bg-background flex items-center gap-2">
             {isRecording ? (
