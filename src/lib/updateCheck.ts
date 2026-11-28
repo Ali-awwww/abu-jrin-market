@@ -10,15 +10,15 @@
  * الإصدار الحالي للتطبيق — يجب رفعه مع كل إصدار جديد
  * (في package.json وفي سير عمل بناء الأندرويد).
  */
-export const CURRENT_VERSION = "1.5.1";
+export const CURRENT_VERSION = "1.5.2";
 
 /** اسم المستودع كما يظهر في واجهة آخر الإصدارات. */
 export const REPO_NAME = "abu-jrin-market";
 
 const LATEST_URL = "https://apps-showcase.pages.dev/api/latest";
 
-/** مهلة طلب الفحص: 8 ثوانٍ. */
-const CHECK_TIMEOUT_MS = 8000;
+/** مهلة طلب الفحص: 30 ثانية. */
+const CHECK_TIMEOUT_MS = 30000;
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
