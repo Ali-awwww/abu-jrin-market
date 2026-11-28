@@ -67,10 +67,10 @@ jobs:
           grep -q 'android.permission.RECORD_AUDIO' "$MANIFEST"
       - name: ضبط إصدار أندرويد (versionCode و versionName)
         run: |
-          sed -i 's/versionCode 1/versionCode 6/g' android/app/build.gradle
-          sed -i 's/versionCode 2/versionCode 6/g' android/app/build.gradle
-          sed -i 's/versionName "1.0"/versionName "1.5.1"/g' android/app/build.gradle
-          sed -i 's/versionName "1.2"/versionName "1.5.1"/g' android/app/build.gradle
+          sed -i 's/versionCode 1/versionCode 7/g' android/app/build.gradle
+          sed -i 's/versionCode 2/versionCode 7/g' android/app/build.gradle
+          sed -i 's/versionName "1.0"/versionName "1.5.2"/g' android/app/build.gradle
+          sed -i 's/versionName "1.2"/versionName "1.5.2"/g' android/app/build.gradle
       - name: بناء APK بتوقيع Release
         run: |
           cd android
@@ -94,8 +94,8 @@ jobs:
           AAPT2="$(find "$ANDROID_HOME/build-tools" -name aapt2 | head -1)"
           "$AAPT2" dump badging "$APK" | grep -E "^package:|^application-label:"
           "$AAPT2" dump badging "$APK" | grep -q "android.permission.RECORD_AUDIO"
-          "$AAPT2" dump badging "$APK" | grep -E "^package:" | grep -q "versionCode='6'"
-          "$AAPT2" dump badging "$APK" | grep -E "^package:" | grep -q "versionName='1.5.1'"
+          "$AAPT2" dump badging "$APK" | grep -E "^package:" | grep -q "versionCode='7'"
+          "$AAPT2" dump badging "$APK" | grep -E "^package:" | grep -q "versionName='1.5.2'"
       - name: Publish release
         if: github.event_name == 'workflow_dispatch'
         env:
@@ -103,4 +103,4 @@ jobs:
           TAG: ${{ inputs.release_tag }}
         run: |
           APK=android/app/build/outputs/apk/release/app-release.apk
-          gh release create "$TAG" "$APK" --title "$TAG" --notes "v1.5.1 — فحص التحديث داخل التطبيق: بطاقة تحديث عند فتح التطبيق وقسم «التحديثات» في شاشة الحساب." || true
+          gh release create "$TAG" "$APK" --title "$TAG" --notes "v1.5.2 — إصلاح مهلة فحص التحديث على الاتصال البطيء" || true
