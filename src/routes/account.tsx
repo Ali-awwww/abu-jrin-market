@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { intlPhone, phoneToEmail } from "@/lib/market";
 import { fieldCls } from "@/lib/ui";
+import UpdateSection from "@/components/UpdateSection";
 
 export const Route = createFileRoute("/account")({
   head: () => ({
@@ -45,6 +46,7 @@ function Account() {
         {isAdmin && (
           <Button asChild size="xl" variant="accent" className="w-full"><Link to="/admin">✅ الموافقة على الدكاكين</Link></Button>
         )}
+        <UpdateSection />
         <Button size="xl" variant="outline" className="w-full" onClick={() => supabase.auth.signOut()}>تسجيل الخروج</Button>
       </main>
     );
@@ -84,6 +86,7 @@ function Account() {
       <button className="w-full py-3 text-lg font-bold text-primary" onClick={() => setMode(mode === "login" ? "signup" : "login")}>
         {mode === "login" ? "ليس لديك حساب؟ سجّل الآن" : "لديك حساب؟ ادخل"}
       </button>
+      <UpdateSection />
     </main>
   );
 }
